@@ -1,0 +1,16 @@
+.color-button {
+    width: 3rem;
+    height: 3rem;
+    margin: 0.3rem;
+    border: none;
+
+}
+
+.color-button:hover {
+    transform: scale(1.1);
+}
+
+.selected-color {
+    border: 3px;
+    border-color: rgba(97, 144, 231, 0.4);
+}

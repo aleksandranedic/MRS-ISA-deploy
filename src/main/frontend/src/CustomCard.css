@@ -1,0 +1,126 @@
+#title:hover{
+    color: #171818 !important;
+    cursor: pointer;
+}
+.houseQuickReservationCard {
+    transition: transform .2s; /* Animation */
+}
+
+.houseQuickReservationCard:hover {
+    transform: scale(1.1);
+}
+.quick-reservation-carousel li {
+    min-width: 47vh;
+    margin-right: 3vh;
+}
+
+#house .e-time-icon {
+    display: none !important;
+}
+
+.infoDiv::after {
+    margin-top: 10px;
+    margin-left: 15px;
+    content: "";
+    width: 1px;
+    height: 40%;
+    background: rgba(0, 0, 0, 0.125);
+  }
+
+  .fadeout {
+    position: absolute; 
+    bottom: 0em;
+    width:100%;
+    height: 6em;
+    background: -webkit-linear-gradient(
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 1) 100%
+    ); 
+    background-image: -moz-linear-gradient(
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 1) 100%
+    );
+    background-image: -o-linear-gradient(
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 1) 100%
+    );
+    background-image: linear-gradient(
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 1) 100%
+    );
+    background-image: -ms-linear-gradient(
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 1) 100%
+    );
+} 
+
+#setNewProfileImage {
+    cursor: pointer;
+    position:absolute; 
+    min-width: 25vh; 
+    min-height:8vh; 
+    top:11vh; 
+    background:rgba(255, 255, 255, 0.4);
+}
+
+#setNewProfileImage:hover {
+    position:absolute; 
+    min-width: 25vh; 
+    min-height:8vh; 
+    top:11vh; 
+    background:rgba(255, 255, 255, 0.8);
+}
+
+html {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+#reports-modal .nav-tabs {
+    flex-direction:row !important;
+}
+#reports-modal .nav-link {
+    padding-right: 10px !important;
+    padding-left: 10px !important;
+}
+
+#closeReportsModal {
+    position: absolute;
+    top: 2%;
+    right: 2%;
+    z-index: 1000;
+}
+#closeReportsModal:hover {
+    background-color: transparent;
+    position: absolute;
+    top: 2%;
+    right: 2%;
+    z-index: 1000;
+}
+
+#ResourceReportCard {
+    flex-direction: row !important;
+}
+
+.rdrDateRangePickerWrapper {
+    width: 100% !important;
+}
+.rdrDateRangeWrapper {
+    width: 100% !important;
+}
+.rdrMonth{
+    width: 100% !important;
+}
+
+.adminIncome .card:hover {
+    cursor: pointer;
+    transform: scale(1.1);
+}
+
+.adminIncome .selected {
+    transform: scale(1.1);
+}
+
+.adminIncome .unselected {
+    transform: scale(0.9);
+}

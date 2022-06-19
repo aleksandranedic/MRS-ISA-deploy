@@ -1,0 +1,146 @@
+.houses-carousel {
+  width: 95% !important;
+}
+.add {
+  box-shadow: none !important;
+  display: flex;
+  justify-content: center;
+ 
+  top: 51vh;
+  left: -1%;
+  height: 3%;
+  width: 3%;
+  z-index: 2;
+  border: none;
+  background: transparent;
+  padding: 0px;
+}
+.card-img-top {
+  min-height: 50vh;
+}
+.add svg:hover {
+  fill: #6b6b6b;
+}
+
+.houses-carousel .owl-stage {
+    padding: 40px 0;
+  }
+  .container {
+    max-width: 100% !important;
+  }
+  
+  .houses-carousel .card {
+    position: relative;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-clip: border-box;
+    border-radius: 4px;
+    padding: 0px;
+    align-items: start;
+    min-width: 56vh;
+    max-width: 56vh;
+    min-height: 83vh;
+  }
+  .houses-carousel img {
+      min-height: 56vh;
+      max-height: 56vh;
+      min-width: 56vh;
+      max-width: 56vh;
+  }
+  .item {
+      padding: 0px;
+      min-height: 56vh;
+      max-height: 56vh;
+      min-width: 56vh;
+      max-width: 56vh;
+
+  }
+  
+  .card.show {
+    color: black;
+  }
+  
+  .center .card {
+    color: black;
+    transform: scale(1);
+  }
+  
+  .houses-carousel .owl-nav .owl-next,
+  .houses-carousel .owl-nav .owl-prev {
+    background: 0 0;
+    background: transparent;
+    color: #6b6b6b !important;
+    border: none;
+    padding: 0px 0px !important;
+    font: inherit;
+    font-size: 40px !important;
+    position: absolute;
+    top: 50%;
+  }
+  
+  .houses-carousel .owl-nav .owl-next {
+    right: -60px;
+  }
+  
+  .houses-carousel .owl-nav .owl-prev {
+    left: -20px;
+  }
+  
+  .houses-carousel .owl-nav .owl-next:hover,
+  .houses-carousel .owl-nav .owl-prev:hover {
+    opacity: 0.8;
+    background-color: transparent !important;
+  }
+  
+  .houses-carousel .owl-dots {
+    display: none;
+  }
+  
+  .owl-item > div {
+    
+    transform: scale(1);
+    margin: 0;
+  }
+  .owl-item.center > div {
+    transform: scale(1);
+    transition: scale 0.4s ease-in-out;
+  }
+  .owl-item:not(.center) > div {
+    opacity: 1;
+  }
+  .owl-item:not(.center) > div:hover {
+    opacity: 1;
+  }
+  
+  .owl-nav .owl-next,
+  .owl-nav .owl-prev {
+    background: 0 0;
+    color: #6b6b6b !important;
+    border: none;
+    padding: 5px 20px !important;
+    font: inherit;
+    font-size: 40px !important;
+    position: absolute;
+    top: 50%;
+  }
+  
+  .owl-nav .owl-next {
+    right: -10px;
+  }
+  
+  .owl-nav .owl-prev {
+    left: -10px;
+  }
+  
+  .owl-nav .owl-next:hover,
+  .owl-nav .owl-prev:hover {
+    opacity: 0.8;
+    background-color: transparent !important;
+  }

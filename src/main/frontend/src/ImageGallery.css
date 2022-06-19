@@ -1,0 +1,125 @@
+.gallery-carousel .owl-stage {
+  padding: 100px 0;
+}
+.gallery-carousel .container {
+  max-width: 100% !important;
+}
+
+.gallery-carousel .card {
+  position: relative;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word;
+  background-color: #fff;
+  background-clip: border-box;
+  box-shadow: 0px 6px 10px 0px #bdbdbd;
+  border-radius: 4px;
+  padding: 30px 25px 50px 25px;
+  align-items: center;
+}
+.gallery-carousel img {
+    min-height: 60vh;
+    max-height: 60vh;
+    min-width: 60vh;
+    max-width: 60vh;
+}
+.gallery-carousel .item {
+    padding: 0px;
+    min-height: 60vh;
+    max-height: 60vh;
+    min-width: 60vh;
+    max-width: 60vh;
+}
+
+.gallery-carousel .card-container {
+  padding: 0px 20px;
+}
+
+.gallery-carousel .card.show {
+  color: #fff;
+}
+
+.gallery-carousel .center .card {
+  color: #fff;
+  transform: scale(1.40);
+}
+
+.gallery-carousel .owl-nav .owl-next,
+.gallery-carousel .owl-nav .owl-prev {
+  background: 0 0;
+  background: transparent;
+  color: #6b6b6b !important;
+  border: none;
+  padding: 0px 0px !important;
+  font: inherit;
+  font-size: 40px !important;
+  position: absolute;
+  top: 50%;
+}
+
+.gallery-carousel .owl-nav .owl-next {
+  right: -20px;
+}
+
+.gallery-carousel .owl-nav .owl-prev {
+  left: -20px;
+}
+
+.gallery-carousel .owl-nav .owl-next:hover,
+.gallery-carousel .owl-nav .owl-prev:hover {
+  opacity: 0.8;
+  background-color: transparent !important;
+}
+
+.gallery-carousel .owl-dots {
+  display: none;
+}
+
+.gallery-carousel .owl-item > div {
+  cursor: pointer;
+  transform: scale(0.70);
+  margin: 0;
+}
+.gallery-carousel .owl-item.center > div {
+  cursor: auto;
+  transform: scale(1);
+  transition: scale 0.4s ease-in-out;
+}
+.gallery-carousel .owl-item:not(.center) > div {
+  opacity: 0.5;
+}
+.gallery-carousel .owl-item:not(.center) > div:hover {
+  opacity: 0.85;
+}
+
+.gallery-carousel .owl-nav .owl-next,
+.gallery-carousel .owl-nav .owl-prev {
+  background: 0 0;
+  color: #6b6b6b !important;
+  border: none;
+  padding: 5px 20px !important;
+  font: inherit;
+  font-size: 40px !important;
+  position: absolute;
+  top: 50%;
+}
+
+.gallery-carousel .owl-nav .owl-next {
+  right: -10px;
+}
+
+.gallery-carousel .owl-nav .owl-prev {
+  left: -10px;
+}
+
+.gallery-carousel .owl-nav .owl-next:hover,
+.gallery-carousel .owl-nav .owl-prev:hover {
+  opacity: 0.8;
+  background-color: transparent !important;
+}

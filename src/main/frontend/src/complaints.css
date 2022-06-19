@@ -1,0 +1,19 @@
+.profile-image {
+    height: 8vw;
+    width: 8vw;
+    border-radius: 10vw;
+    margin: 6vw 1vw 1vw 6vw;
+
+}
+
+.complaints {
+    height: 55vh;
+    background-image: url("./images/homepage/pexels-pok-rie-2049422-complaints.jpg");
+    background-size: cover;
+    background-position: center;
+}
+
+.custom-badge {
+    background-color: rgb(235,115,2) !important;
+
+}

@@ -1,0 +1,246 @@
+.page {
+    background-color: #d8d8d8;
+    min-height: 100vh;
+    height: 100%;
+
+}
+
+.links-card {
+    border-color:  #d8d8d8;
+}
+
+.filler {
+    min-height: 8vh;
+    height: 40vh;
+}
+
+#hero {
+    height: 80vh;
+    background:
+    url("../images/homepage/pexels-pixabay-355829.jpg")
+    no-repeat scroll 50% 75%;
+    background-size: cover;
+}
+
+.resource {
+    margin: 1vh;
+    transform: translateY(22vh);
+    background: linear-gradient(175deg, rgba(248,248,248,1) 50%, rgba(184,184,184,1) 100%);
+    width: 30vw;
+    height: 12vw;
+}
+
+.resource h1{
+    margin: 4vh 6vh 0 3vh;
+    font-size: 2.25vh !important;
+    font-family: "Trebuchet MS", sans-serif;
+}
+
+.resource p{
+    margin: 2vh 6vh 0 3vh;
+    font-size: 1.75vh !important;
+    font-family: "Trebuchet MS", sans-serif;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.resource-img {
+    height: 12vw;
+    width: 12vw;
+    object-fit: cover;
+}
+
+.resource button {
+    font-size: 1.50vh !important;
+    margin: 1vh 1vh 6vh 0;
+    display: block;
+}
+
+
+@media (max-width: 1400px) {
+    .resource p {
+        display: -webkit-box;
+    }
+}
+
+@media (min-width: 821px) {
+    .resource p {
+        -webkit-line-clamp: 2;
+        display: -webkit-box;
+    }
+    .resource button {
+        display: block;
+    }
+
+}
+
+
+@media (max-width: 820px) {
+    .resource p {
+        display: none;
+    }
+    .resource button {
+        display: none;
+    }
+}
+
+
+@media (min-width: 1400px) {
+    .resource p {
+        -webkit-line-clamp: 4;
+    }
+}
+
+.main-content {
+    transform: translateY(8vh);
+}
+
+.background{
+    position:absolute;
+    z-index:0;
+    display:block;
+
+}
+
+.links {
+    height:115vh;
+
+}
+
+.content{
+    position:absolute;
+    z-index:1;
+    height:80vh;
+    transform: translateY(14vh);
+}
+
+.content img{
+
+    height: 20vw;
+    width: 15vw;
+    object-fit: cover;
+    }
+
+.bg-text
+{
+    color: rgba(200, 200, 200, 0.9);
+    font-size:30vh;
+    transform: translateX(-6vh);
+
+}
+
+.links-card {
+    margin: 1vw;
+    border: none;
+    border-radius: 2vh;
+}
+
+.links-card img {
+    border-radius: 2vh;
+    border: none;
+}
+
+.links-card a {
+    text-decoration:none;
+    color: white;
+}
+
+.vendor-profile-image {
+    height: 6vw;
+    width: 6vw;
+    border-radius: 10vw;
+}
+
+.vendor-profile-image-placeholder {
+    height: 6vw;
+    width: 6vw;
+    border-radius: 10vw;
+    background-color: rgba(0,0,0,0.1);
+}
+
+.vendor-card {
+    background: linear-gradient(175deg, rgba(248,248,248,0.9) 50%, rgba(201, 201, 201, 0.6) 100%);
+    border: none;
+    width: 20%;
+
+}
+
+.vendor-banner {
+    height: 12vw;
+    transform: translateY(95vh);
+}
+
+.vendor-name {
+    font-family: "Trebuchet MS", sans-serif;
+
+}
+
+.vacation-house-owner-banner {
+    background: url("../images/homepage/pexels-ragga-muffin-2468773.jpg") center;
+    background-size: cover;
+
+}
+
+.fishing-instructor-banner {
+    background: url("../images/homepage/pexels-pictures-of-scotland-831545.jpg") center;
+    background-size: cover;
+}
+
+.boat-owner-banner {
+    background: url("../images/homepage/pexels-szelei-robert-1482193.jpg") center;
+    background-size: cover;
+}
+
+.reveal{
+    transform: translateY(15vh);
+    opacity: 0;
+    transition: 1s all ease;
+}
+
+.reveal.vendor-card {
+    transform: translateY(78vh) !important;
+}
+
+.reveal.active{
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.reveal.active.vendor-card
+{
+    transform: translateY(68vh) !important;
+}
+
+.logo{
+    margin-left: 14vw;
+    margin-top: 6vh;
+}
+
+.subtitle{
+    margin-left: 14vw;
+    font-size: 3vh !important;
+    width: 35%;
+    color: rgb(145, 145, 145) !important;
+}
+
+.icon {
+    color: rgb(145, 145, 145);
+    height: 1.75rem;
+    width: auto;
+}
+
+.search {
+    margin-left: 14vw;
+    width: 100%;
+    transform: translateY(0vh) !important;
+    margin-top: 2vh;
+
+}
+
+.search-bar {
+    width: 32.5%;
+    margin-right: 2vh;
+}
+

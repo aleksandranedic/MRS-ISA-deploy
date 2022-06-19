@@ -1,0 +1,72 @@
+.overview-image {
+    object-fit: cover;
+    height: 48vh;
+    width: 100%;
+    border-radius: 0;
+    object-position: center;
+    z-index: 1;
+
+}
+
+.info{
+    z-index: 3;
+    color: white;
+}
+
+.overlay {
+    z-index: 2;
+    background-color: rgba(15, 15, 15, 0.4);
+}
+
+.delete-button {
+    margin-left: auto;
+    height: 5%;
+}
+
+.link-image {
+    width: 5vw;
+    margin-bottom: 0;
+}
+
+.navigation-card-image-resources {
+    object-fit: cover;
+    border-radius: 15PX;
+    max-width: 23vw;
+    min-width: 23vw;
+    max-height: 15vh;
+    min-height: 15vh;
+    opacity: 0.6;
+    object-position: center;
+}
+
+.navigation-card-image-user {
+    object-fit: cover;
+    border-radius: 15PX;
+    width: 14vw;
+
+   height: 15vh;
+
+    opacity: 0.6;
+    object-position: center;
+}
+
+.user-card-title{
+    font-size: 3.5vh;
+}
+
+.fade-in {
+    opacity: 1;
+    animation-name: fadeInOpacity;
+    animation-iteration-count: 1;
+    animation-timing-function: ease-in;
+    animation-duration: 2s;
+}
+
+@keyframes fadeInOpacity {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}

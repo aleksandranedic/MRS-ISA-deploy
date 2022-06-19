@@ -1,0 +1,46 @@
+version: 2.1
+jobs:
+  build_backend:
+    docker:
+      - image: cimg/openjdk:8.0
+        auth:
+          username: aleksandranedic
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - run:
+          name: Build
+          command: mvn verify -DskipTests clean package
+  deploy_backend:
+    docker:
+      - image: cimg/openjdk:8.0
+        auth:
+          username: aleksandranedic
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - run:
+          name: Deploy backend
+          command: git push https://heroku:$HEROKU_API_KEY@git.heroku.com/savana-backend.git master
+  deploy_frontend:
+    docker:
+      - image: circleci/node:10.16.3
+        auth:
+          username: aleksandranedic
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - run: ls
+      - run: cd src && ls
+      - run: cd src/main && ls
+      - run: cd src/main/frontend && ls
+      - run:
+          name: Deploy frontend
+          command: git subtree push --prefix="src/main/frontend" https://heroku:$HEROKU_API_KEY@git.heroku.com/savana-frontend.git master
+
+workflows:
+  sample:
+    jobs:
+      - build_backend
+      - deploy_backend
+      - deploy_frontend
