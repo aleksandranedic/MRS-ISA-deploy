@@ -15,7 +15,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path="boat")
-@CrossOrigin("*")
 public class BoatController {
 
     private final BoatService service;

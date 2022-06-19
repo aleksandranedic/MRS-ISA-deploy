@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = "registration")
-@CrossOrigin("*")
 public class RegistrationController {
 
     private final RegistrationService registrationService;

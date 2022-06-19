@@ -10,7 +10,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "vendorRegistration")
-@CrossOrigin("*")
 public class UnregisteredVendorsController {
 
     private final VendorRegistrationService service;
