@@ -21,7 +21,7 @@ jobs:
       - checkout
       - run:
           name: Deploy backend
-          command: git push https://heroku:$HEROKU_API_KEY@git.heroku.com/savana-backend.git master
+          command: git push https://heroku:$HEROKU_API_KEY@git.heroku.com/the-savana-backend.git master
   deploy_frontend:
     docker:
       - image: circleci/node:10.16.3
@@ -36,7 +36,7 @@ jobs:
       - run: cd src/main/frontend && ls
       - run:
           name: Deploy frontend
-          command: git subtree push --prefix="src/main/frontend" https://heroku:$HEROKU_API_KEY@git.heroku.com/savana-frontend.git master
+          command: git subtree push --prefix="src/main/frontend" https://heroku:$HEROKU_API_KEY@git.heroku.com/the-savana-frontend.git master
 
 workflows:
   sample:
