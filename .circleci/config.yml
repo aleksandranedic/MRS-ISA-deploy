@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build_backend:
     docker:
-      - image: cimg/openjdk:8.0
+      - image: cimg/openjdk:11.0
         auth:
           username: aleksandranedic
           password: $DOCKERHUB_PASSWORD
