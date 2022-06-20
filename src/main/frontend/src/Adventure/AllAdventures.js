@@ -6,7 +6,7 @@ export function GetAllAdventures() {
     const [adventures, setAdventures] = useState([]);
 
     const fetchAdventures = () => {
-        axios.get(backLink + "/adventure",{headers:{'Access-Control-Allow-Origin': '*'}}).then(res => {
+        axios.get(backLink + "/adventure").then(res => {
             setAdventures(res.data);
         });
     };
