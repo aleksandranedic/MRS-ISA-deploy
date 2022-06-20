@@ -10,7 +10,7 @@ jobs:
       - checkout
       - run:
           name: Build
-          command: mvn verify -DskipTests clean package
+          command: mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=aleksandranedic_MRS-ISA-deploy -DskipTests clean package
   deploy_backend:
     docker:
       - image: cimg/openjdk:8.0
