@@ -560,7 +560,7 @@ public class BoatService {
 
 
     @Transactional(readOnly = false)
-    private BoatReservation createFromDTO(NewReservationDTO dto) throws PessimisticLockingFailureException {
+    public BoatReservation createFromDTO(NewReservationDTO dto) throws PessimisticLockingFailureException {
         Client client = clientService.getById(dto.getClientId().toString());
         Long id = dto.getResourceId();
         Boat boat = this.getByIdConcurrent(id); //throws

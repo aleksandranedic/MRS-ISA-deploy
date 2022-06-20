@@ -545,7 +545,7 @@ public class VacationHouseService {
     }
 
     @Transactional(readOnly = false)
-    private VacationHouseReservation createFromDTO(NewReservationDTO dto) throws PessimisticLockingFailureException {
+    public VacationHouseReservation createFromDTO(NewReservationDTO dto) throws PessimisticLockingFailureException {
         Client client = clientService.getById(dto.getClientId().toString());
         Long id = dto.getResourceId();
         VacationHouse vacationHouse = this.getByIdConcurrent(id); //throws exc
