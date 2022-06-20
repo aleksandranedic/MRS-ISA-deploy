@@ -14,6 +14,8 @@
 	<name>team9</name>
 	<description>School project for developing Web Applications</description>
 	<properties>
+		<sonar.organization>aleksandranedic</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 		<java.version>1.8</java.version>
 	</properties>
 	<dependencies>
@@ -21,6 +23,11 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>1.18.24</version>
+		</dependency>
+		<dependency>
+			<groupId>org.sonarsource.scanner.maven</groupId>
+			<artifactId>sonar-maven-plugin</artifactId>
+			<version>3.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.auth0</groupId>
