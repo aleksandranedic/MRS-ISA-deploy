@@ -21,20 +21,42 @@ export function ReservationsToReview({type}) {
             axios
                 .get(backLink + "/adventure/reservation/forReview/" + id)
                 .then(res => {
-                    setReservations(res.data);
+                    let reservations = []
+                    for (let index in res.data) {
+
+                        let reservation = res.data.at(index);
+                        if (reservation.busyPeriod === false && reservation.quickReservation === false) {
+                            reservations.push(reservation);
+                        }
+                    }
+                    setReservations(reservations);
                 });
         } else if (type === "boat") {
             axios
                 .get(backLink + "/boat/reservation/forReview/" + id)
                 .then(res => {
-                    setReservations(res.data);
+                    let reservations = []
+                    for (let index in res.data) {
+                        let reservation = res.data.at(index);
+                        if (reservation.busyPeriod === false && reservation.quickReservation === false) {
+                            reservations.push(reservation);
+                        }
+                    }
+                    setReservations(reservations);
                 });
 
         } else if (type === "vacationHouse") {
             axios
                 .get(backLink + "/house/reservation/forReview/" + id)
                 .then(res => {
-                    setReservations(res.data);
+                    let reservations = []
+                    for (let index in res.data) {
+                        let reservation = res.data.at(index);
+                        if (reservation.busyPeriod === false && reservation.quickReservation === false) {
+                            reservations.push(reservation);
+                        }
+                    }
+                    setReservations(reservations);
                 });
         }
 
@@ -53,7 +75,6 @@ export function ReservationsToReview({type}) {
         }
 
         axios.post(backLink + "/review/vendor/add", dto).then( response => {
-            console.log(response.data);
             }
         ).catch(err => {
 

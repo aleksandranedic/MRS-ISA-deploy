@@ -34,4 +34,7 @@ public interface BoatReservationRepository extends JpaRepository<BoatReservation
 
     @Query("FROM BoatReservation WHERE client.id=?1 AND deleted= false")
     List<BoatReservation> findBoatReservationByClientId(Long id);
+
+    @Query("FROM BoatReservation  WHERE (client.id = ?1 AND deleted = false) OR (client.id = ?1 AND resource.id = ?1 AND deleted=true) ")
+    List<BoatReservation> getPossibleCollisionReservationsForClient(Long clientId, Long resourceId);
 }

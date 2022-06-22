@@ -1,18 +1,16 @@
 package com.project.team9.service;
 
-import com.project.team9.dto.ClientDTO;
-import com.project.team9.dto.ClientReservationDTO;
-import com.project.team9.dto.LoginDTO;
-import com.project.team9.dto.ReservationDTO;
+import com.project.team9.dto.*;
 
 import com.project.team9.exceptions.CannotDeleteException;
+import com.project.team9.exceptions.ReservationNotAvailableException;
 import com.project.team9.model.Address;
 import com.project.team9.model.Image;
 import com.project.team9.model.reservation.AdventureReservation;
+import com.project.team9.model.reservation.Appointment;
 import com.project.team9.model.reservation.BoatReservation;
 import com.project.team9.model.reservation.VacationHouseReservation;
 import com.project.team9.model.user.Client;
-import com.project.team9.model.user.vendor.FishingInstructor;
 import com.project.team9.repo.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -38,17 +37,17 @@ public class ClientService {
     private final BoatReservationService boatReservationService;
     private final VacationHouseReservationService vacationHouseReservationService;
     private final AddressService addressService;
+    private final ReservationService reservationService;
 
     @Autowired
-    public ClientService(ClientRepository clientRepository, ImageService imageService, AdventureReservationService adventureReservationService, BoatReservationService boatReservationService, VacationHouseReservationService vacationHouseReservationService,
-                         AddressService addressService
-                         ) {
+    public ClientService(ClientRepository clientRepository, ImageService imageService, AdventureReservationService adventureReservationService, BoatReservationService boatReservationService, VacationHouseReservationService vacationHouseReservationService, AddressService addressService, ReservationService reservationService) {
         this.clientRepository = clientRepository;
         this.imageService = imageService;
         this.adventureReservationService = adventureReservationService;
         this.boatReservationService = boatReservationService;
         this.vacationHouseReservationService = vacationHouseReservationService;
         this.addressService = addressService;
+        this.reservationService = reservationService;
     }
 
     public List<Client> getClients() {
@@ -123,8 +122,7 @@ public class ClientService {
     }
 
     public Client getClientByEmailAndPassword(LoginDTO loginDTO) {
-        for (Client client :
-                getClients()) {
+        for (Client client : getClients()) {
             if (client.getPassword().equals(loginDTO.getPassword()) && client.getEmail().equals(loginDTO.getUsername())) {
                 return client;
             }
@@ -139,13 +137,13 @@ public class ClientService {
     public List<ReservationDTO> getReservations(Long id) {
         List<ReservationDTO> reservations = new ArrayList<>();
         for (AdventureReservation reservation : adventureReservationService.getAdventureReservationsForClientId(id)) {
-            reservations.add(new ClientReservationDTO(reservation.getAppointments(), reservation.getNumberOfClients(), reservation.getAdditionalServices(), reservation.getPrice(), reservation.getClient(), reservation.getResource().getTitle(), reservation.isBusyPeriod(), reservation.isQuickReservation(), reservation.getResource().getId(),reservation.getId(),"adventure"));
+            reservations.add(new ClientReservationDTO(reservation.getAppointments(), reservation.getNumberOfClients(), reservation.getAdditionalServices(), reservation.getPrice(), reservation.getClient(), reservation.getResource().getTitle(), reservation.isBusyPeriod(), reservation.isQuickReservation(), reservation.getResource().getId(), reservation.getId(), "adventure"));
         }
         for (BoatReservation reservation : boatReservationService.getBoatReservationsForClientId(id)) {
-            reservations.add(new ClientReservationDTO(reservation.getAppointments(), reservation.getNumberOfClients(), reservation.getAdditionalServices(), reservation.getPrice(), reservation.getClient(), reservation.getResource().getTitle(), reservation.isBusyPeriod(), reservation.isQuickReservation(), reservation.getResource().getId(),reservation.getId(),"boat" ));
+            reservations.add(new ClientReservationDTO(reservation.getAppointments(), reservation.getNumberOfClients(), reservation.getAdditionalServices(), reservation.getPrice(), reservation.getClient(), reservation.getResource().getTitle(), reservation.isBusyPeriod(), reservation.isQuickReservation(), reservation.getResource().getId(), reservation.getId(), "boat"));
         }
         for (VacationHouseReservation reservation : vacationHouseReservationService.getVacationHouseReservationsForClienId(id)) {
-            reservations.add(new ClientReservationDTO(reservation.getAppointments(), reservation.getNumberOfClients(), reservation.getAdditionalServices(), reservation.getPrice(), reservation.getClient(), reservation.getResource().getTitle(), reservation.isBusyPeriod(), reservation.isQuickReservation(), reservation.getResource().getId(),reservation.getId(),"house"));
+            reservations.add(new ClientReservationDTO(reservation.getAppointments(), reservation.getNumberOfClients(), reservation.getAdditionalServices(), reservation.getPrice(), reservation.getClient(), reservation.getResource().getTitle(), reservation.isBusyPeriod(), reservation.isQuickReservation(), reservation.getResource().getId(), reservation.getId(), "house"));
         }
         return reservations;
     }
@@ -165,28 +163,79 @@ public class ClientService {
             addressService.addAddress(address);
         }
         currentClient.setAddress(address);
-        currentClient = addClient(currentClient);
+        addClient(currentClient);
         return currentClient;
     }
 
     public Long delete(Long id) throws CannotDeleteException {
         Client client = clientRepository.getById(id);
         client.setDeleted(true);
-        for (AdventureReservation r:  adventureReservationService.getAdventureReservationsForClientId(id)) {
+        for (AdventureReservation r : adventureReservationService.getAdventureReservationsForClientId(id)) {
             if (r.getAppointments().get(r.getAppointments().size() - 1).getEndTime().isAfter(LocalDateTime.now())) {
                 throw new CannotDeleteException();
             }
         }
-        for (BoatReservation r:  boatReservationService.getBoatReservationsForClientId(id)) {
+        for (BoatReservation r : boatReservationService.getBoatReservationsForClientId(id)) {
             if (r.getAppointments().get(r.getAppointments().size() - 1).getEndTime().isAfter(LocalDateTime.now())) {
                 throw new CannotDeleteException();
             }
         }
-        for (VacationHouseReservation r:  vacationHouseReservationService.getVacationHouseReservationsForClienId(id)) {
+        for (VacationHouseReservation r : vacationHouseReservationService.getVacationHouseReservationsForClienId(id)) {
             if (r.getAppointments().get(r.getAppointments().size() - 1).getEndTime().isAfter(LocalDateTime.now())) {
                 throw new CannotDeleteException();
             }
         }
         return clientRepository.save(client).getId();
+    }
+
+    public String canReserve(NewReservationDTO dto) {
+
+        Client client = clientRepository.getById(dto.getClientId());
+        if (client.getNumOfPenalties() >= 3) {
+            return "Klijent ima 3 ili više penala.";
+        }
+
+        List<Appointment> appointments = new ArrayList<Appointment>();
+
+        LocalDateTime startTime = LocalDateTime.of(dto.getStartYear(), Month.of(dto.getStartMonth()), dto.getStartDay(), dto.getStartHour(), dto.getStartMinute());
+        LocalDateTime endTime = startTime.plusHours(1);
+
+        LocalDateTime finalTime = LocalDateTime.of(dto.getEndYear(), Month.of(dto.getEndMonth()), dto.getEndDay(), dto.getEndHour(), dto.getEndMinute());
+
+        while (endTime.isBefore(finalTime)) {
+            appointments.add(new Appointment(startTime, endTime));
+            startTime = endTime;
+            endTime = startTime.plusHours(1);
+        }
+
+        appointments.add(new Appointment(startTime, finalTime));
+
+        try {
+            for (AdventureReservation r : adventureReservationService.getPossibleCollisionReservationsForClient(dto.getClientId(), dto.getResourceId())) {
+                for (Appointment a : r.getAppointments()) {
+                    for (Appointment newAppointment : appointments) {
+                        reservationService.checkAppointmentCollision(a, newAppointment);
+                    }
+                }
+            }
+            for (VacationHouseReservation r : vacationHouseReservationService.getPossibleCollisionReservationsForClient(dto.getClientId(), dto.getResourceId())) {
+                for (Appointment a : r.getAppointments()) {
+                    for (Appointment newAppointment : appointments) {
+                        reservationService.checkAppointmentCollision(a, newAppointment);
+                    }
+                }
+            }
+            for (BoatReservation r : boatReservationService.getPossibleCollisionReservationsForClient(dto.getClientId(), dto.getResourceId())) {
+                for (Appointment a : r.getAppointments()) {
+                    for (Appointment newAppointment : appointments) {
+                        reservationService.checkAppointmentCollision(a, newAppointment);
+                    }
+                }
+            }
+
+        } catch (ReservationNotAvailableException e) {
+            return "Termin koji ste pokušali da zauzmete nije dostupan. Klijent već ima rezervaciju u tom terminu ili ste pokušali da napravite rezervaciju u terminu koju je klijent već otkazao za ovaj entitet.";
+        }
+        return "Ok";
     }
 }

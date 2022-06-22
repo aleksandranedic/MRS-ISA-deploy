@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface AdventureReservationRepository extends JpaRepository<AdventureReservation, Long> {
 
-    @Query("FROM AdventureReservation WHERE isQuickReservation = false AND isBusyPeriod = false AND deleted= false")
+    @Query("FROM AdventureReservation WHERE isBusyPeriod = false AND deleted= false")
     List<AdventureReservation> findStandardReservations();
 
     @Query("FROM AdventureReservation WHERE isBusyPeriod = true AND deleted= false")
@@ -40,4 +40,10 @@ public interface AdventureReservationRepository extends JpaRepository<AdventureR
 
     @Query("FROM AdventureReservation WHERE client.id=?1 AND deleted= false")
     List<AdventureReservation> findAdventureReservationForClientId(Long id);
+
+    @Query("FROM AdventureReservation  WHERE deleted = false")
+    List<AdventureReservation> getReservations();
+
+    @Query("FROM AdventureReservation  WHERE (client.id = ?1 AND deleted = false) OR (client.id = ?1 AND resource.id = ?1 AND deleted=true) ")
+    List<AdventureReservation> getPossibleCollisionReservationsForClient(Long clientId, Long resourceId);
 }

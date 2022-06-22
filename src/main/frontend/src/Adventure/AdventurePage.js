@@ -6,7 +6,7 @@ import AdventureInfo from "./AdventureInfo";
 import {Calendar} from "../Calendar/Calendar";
 import {AdventureModal} from "./AdventureModal";
 import {useParams} from "react-router-dom";
-import {backLink} from "../Consts";
+import {backLink, frontLink} from "../Consts";
 import {ReservationsTable} from "../Calendar/ReservationsTable";
 import {Button, Collapse, Form} from "react-bootstrap";
 import {ReservationCardGrid} from "../Calendar/ReservationCardGrid";
@@ -65,10 +65,20 @@ const Adventure = ({id}) => {
         }
     }
     const fetchAdventure = () => {
-        axios.get(backLink + "/adventure/" + id).then(res => {
+        axios.get(backLink + "/adventure/" + id)
+        .then(res => {
+            if (res.data === ''){
+                window.location.href = frontLink + "pageNotFound"
+            }
             setAdventure(res.data);
             setImages([]);
             setMyPage(isMyPage(res.data.owner.roleName, res.data.owner.id));
+            fetchReservations();
+            fetchReviews();
+            fetchQuickReservations();
+        })
+        .catch(error => {
+            window.location.href = frontLink + "pageNotFound"
         });
     };
 
@@ -76,7 +86,6 @@ const Adventure = ({id}) => {
     const fetchReservations = () => {
         axios.get(backLink + "/adventure/reservation/adventure/" + id).then(res => {
             setReservations(res.data);
-            console.log(myPage)
             setEvents(processReservationsForResources(res.data, myPage));
 
         })
@@ -97,9 +106,6 @@ const Adventure = ({id}) => {
     };
 
     useEffect(() => {
-        fetchReservations();
-        fetchReviews();
-        fetchQuickReservations();
         fetchAdventure();
     }, []);
 
@@ -143,6 +149,8 @@ const Adventure = ({id}) => {
                       type={"adventure"}
                       events={events} myPage={myPage}
                       additionalServices={adventure.additionalServices}
+                      cancellationFee = {adventure.cancellationFee}
+                      reservations = {reservations}
             />
 
             <hr className="me-5 ms-5 mt-5"/>
@@ -162,7 +170,7 @@ const Adventure = ({id}) => {
                 </>
             }
 
-            <div className="m-5 mb-0 me-0" id="reviews">
+            <div className="m-5 mb-0" id="reviews">
                 <ReviewsComp reviews={adventureReviews}/>
             </div>
 

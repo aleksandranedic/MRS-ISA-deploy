@@ -137,9 +137,9 @@ public class ClientReviewService {
     public UserStatDTO getUserStat(Long id) {
         Client client = clientService.getById(String.valueOf(id));
         return new UserStatDTO(
-                0,
+                client.getNumOfPenalties(),
                 client.getNumOfPoints(),
-                userCategoryService.getVendorCategoryBasedOnPoints(client.getNumOfPoints()),
+                userCategoryService.getClientCategoryBasedOnPoints(client.getNumOfPoints()),
                 this.getRating(id, "client")
         );
     }

@@ -12,7 +12,7 @@ function UpdateBoat({showModal, closeModal, boat}) {
   const imagesRef = useRef();
   const {id} = useParams();
   const [validated, setValidated] = useState(false);
-  
+ 
   const [state, setState] = useState({name:'', price:'', description:'', type:'', engineStrength:'', topSpeed:'', length:'', engineNumber:'', capacity:'', rulesAndRegulations:'', street:'', number:'', city:'', country:'', navigationEquipment:[{id:0, text:''}], fishingEquipment:[{id:0, text:''}], additionalServices:[{id:0, text:''}], cancellationFee:'', imagePaths:[]});
    
   useEffect(() => {

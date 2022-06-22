@@ -48,7 +48,7 @@ export function ReservationsTable(props) {
                             <td>{getStartTime(reservation)}</td>
                             <td>{getEndTime(reservation)}</td>
                             <td onClick={e => visitClient(reservation.client.id)} style={{cursor:"pointer"}}>{reservation.client.firstName + " " + reservation.client.lastName}</td>
-                            {props.showResource && <td>{reservation.resource.title}</td>}
+                            {props.showResource && <td>{reservation.resourceTitle}</td>}
                             <td>{reservation.price}</td>
                             <td>{reservation.numberOfClients}</td>
                             <td>

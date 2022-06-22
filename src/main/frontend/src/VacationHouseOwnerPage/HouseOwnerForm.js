@@ -107,7 +107,8 @@ export function HouseOwnerForm({show, setShow, owner, profileImg}) {
             axios
             .post(backLink + "/houseowner/updateOwner/" + id, data)
             .then(res => {
-                window.location.reload();
+                notifySuccess("Nalog uspešno izmenjen.")
+                setTimeout(function() {window.location.reload()}, 1500);
             });
         }
     }
@@ -176,6 +177,19 @@ export function HouseOwnerForm({show, setShow, owner, profileImg}) {
                 <Button variant="secondary" onClick={()=>setShow(false)}> Otkazi  </Button>
                 <Button variant="primary" onClick={handleSubmit}> Izmeni </Button>
             </Modal.Footer>
+            <ToastContainer
+                position="top-center"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={true}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme={"colored"}
+                
+                />
         </Form>
     </Modal>
 }
@@ -207,7 +221,7 @@ export function ChangePassword({show, setShow}) {
             .then( res => {
                 localStorage.setItem('token', res.data)
                 notifySuccess("Uspešno ste promenili šifru")
-                setTimeout(function(){setShow(false)}, 2500);
+                setShow(false);
             })
             .catch(function (error) {
                 notifyError(error.response.data)
@@ -249,19 +263,7 @@ export function ChangePassword({show, setShow}) {
                 <Button variant="primary" onClick={changePassword}> Izmeni </Button>
             </Modal.Footer>
         </Form>
-        <ToastContainer
-                position="top-center"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={true}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme={"colored"}
-                
-                />
+        
     </Modal>
 }
 
@@ -286,7 +288,7 @@ export function DeleteAccount({show, setShow}) {
             })
             .then(res => {
                 notifySuccess(res.data)
-                setTimeout(function(){setShow(false)}, 2500);
+                setShow(false);
                 })
                 .catch(function (error) {
                     notifyError(error.response.data)
@@ -312,19 +314,7 @@ export function DeleteAccount({show, setShow}) {
                 <Button variant="primary" onClick={deleteUser}> Obriši </Button>
             </Modal.Footer>
         </Form>
-        <ToastContainer
-                position="top-center"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={true}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme={"colored"}
-                
-                />
+        
     </Modal>
 }
 

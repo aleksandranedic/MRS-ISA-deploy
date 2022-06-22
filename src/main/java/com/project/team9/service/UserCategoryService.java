@@ -1,5 +1,6 @@
 package com.project.team9.service;
 
+import com.project.team9.exceptions.CategoryExistsException;
 import com.project.team9.model.buissness.UserCategory;
 import com.project.team9.repo.UserCategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,12 +28,43 @@ public class UserCategoryService {
         return repository.getAllVendorCategories();
     }
 
-    public Long addUserCategory(UserCategory userCategory) {
+    public Long addUserCategory(UserCategory userCategory) throws CategoryExistsException {
+
+
+
+
         if (Objects.equals(userCategory.getType(), "CLIENT")) {
+
+            for (UserCategory uc: getAllClientCategories()) {
+
+                if (uc.getMinimumPoints() <= userCategory.getMinimumPoints() && userCategory.getMinimumPoints() <= uc.getMaximumPoints()) {
+                    throw new CategoryExistsException();
+                }
+
+                if (uc.getMinimumPoints() <= userCategory.getMinimumPoints() && userCategory.getMaximumPoints() <= uc.getMaximumPoints()) {
+                    throw new CategoryExistsException();
+                }
+
+            }
+
             userCategory.setClientCategory(true);
             userCategory.setVendorCategory(false);
         }
         else if (Objects.equals(userCategory.getType(), "VENDOR")) {
+
+            for (UserCategory uc: getAllVendorCategories()) {
+
+                if (uc.getMinimumPoints() <= userCategory.getMinimumPoints() && userCategory.getMinimumPoints() <= uc.getMaximumPoints()) {
+                    throw new CategoryExistsException();
+                }
+
+                if (uc.getMinimumPoints() <= userCategory.getMinimumPoints() && userCategory.getMaximumPoints() <= uc.getMaximumPoints()) {
+                    throw new CategoryExistsException();
+                }
+
+            }
+
+
             userCategory.setClientCategory(false);
             userCategory.setVendorCategory(true);
         }

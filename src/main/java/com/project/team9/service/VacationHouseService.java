@@ -6,15 +6,16 @@ import com.project.team9.model.Address;
 import com.project.team9.model.Image;
 import com.project.team9.model.Tag;
 import com.project.team9.model.buissness.Pricelist;
-import com.project.team9.model.reservation.AdventureReservation;
 import com.project.team9.model.reservation.Appointment;
 import com.project.team9.model.reservation.VacationHouseReservation;
 import com.project.team9.model.resource.VacationHouse;
 import com.project.team9.model.user.Client;
+import com.project.team9.model.user.vendor.BoatOwner;
 import com.project.team9.model.user.vendor.VacationHouseOwner;
 import com.project.team9.repo.VacationHouseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
@@ -38,6 +41,7 @@ public class VacationHouseService {
     final String IMAGES_PATH = "/images/houses/";
 
     private final VacationHouseRepository repository;
+    private final VacationHouseOwnerService vacationHouseOwnerService;
     private final AddressService addressService;
     private final PricelistService pricelistService;
     private final TagService tagService;
@@ -55,8 +59,9 @@ public class VacationHouseService {
     private String frontLink;
 
     @Autowired
-    public VacationHouseService(VacationHouseRepository vacationHouseRepository, AddressService addressService, PricelistService pricelistService, TagService tagService, ImageService imageService, VacationHouseReservationService vacationHouseReservationService, ClientReviewService clientReviewService, AppointmentService appointmentService, ClientService clientService, ReservationService reservationService, EmailService emailService, PointlistService pointlistService, UserCategoryService userCategoryService) {
+    public VacationHouseService(VacationHouseRepository vacationHouseRepository, VacationHouseOwnerService vacationHouseOwnerService, AddressService addressService, PricelistService pricelistService, TagService tagService, ImageService imageService, VacationHouseReservationService vacationHouseReservationService, ClientReviewService clientReviewService, AppointmentService appointmentService, ClientService clientService, ReservationService reservationService, EmailService emailService, PointlistService pointlistService, UserCategoryService userCategoryService) {
         this.repository = vacationHouseRepository;
+        this.vacationHouseOwnerService = vacationHouseOwnerService;
         this.addressService = addressService;
         this.pricelistService = pricelistService;
         this.tagService = tagService;
@@ -133,10 +138,11 @@ public class VacationHouseService {
         return Math.round(result * scale) / scale;
     }
 
+    @Cacheable(value = "houseDTO", unless="#result == null")
     public VacationHouseDTO getVacationHouseDTO(Long id) {
         VacationHouse vh;
         try{
-            vh = repository.getById(id);
+            vh = this.getVacationHouse(id);
             if (vh.getDeleted())
                 return null;
         }
@@ -419,6 +425,8 @@ public class VacationHouseService {
         Pricelist pl = new Pricelist(house.getPrice(), new Date());
         pricelistService.addPriceList(pl);
         int numberOfBedsPerRoom = house.getCapacity() / house.getNumberOfRooms();
+        if (numberOfBedsPerRoom <1)
+            numberOfBedsPerRoom = 1;
         Address adr = new Address(house.getCity(), house.getNumber(), house.getStreet(), house.getCountry());
         addressService.addAddress(adr);
         VacationHouse vh = new VacationHouse(house.getName(), adr, house.getDescription(), house.getRulesAndRegulations(), pl, house.getCancellationFee(), null, house.getNumberOfRooms(), numberOfBedsPerRoom);
@@ -473,7 +481,7 @@ public class VacationHouseService {
         List<ReservationDTO> reservations = new ArrayList<ReservationDTO>();
 
         for (VacationHouseReservation vhr : vacationHouseReservationService.getAll()) {
-            if (Objects.equals(vhr.getResource().getId(), id) && !vhr.isQuickReservation() && !vhr.isBusyPeriod()) {
+            if (Objects.equals(vhr.getResource().getId(), id) && !vhr.isBusyPeriod()) {
                 reservations.add(createDTOFromReservation(vhr));
             }
         }
@@ -505,7 +513,8 @@ public class VacationHouseService {
                 vhr.isBusyPeriod(),
                 vhr.isQuickReservation(),
                 vhr.getResource().getId(),
-                vhr.getId()
+                vhr.getId(),
+                "house"
         );
     }
 
@@ -536,9 +545,14 @@ public class VacationHouseService {
         String email = emailService.buildHTMLEmail(client.getName(), fullResponse, link, "Potvrda brze rezervacije");
         emailService.send(client.getEmail(), email, "Potvrda brze rezervacije");
         vacationHouseReservationService.save(reservation);
+
         client.setNumOfPoints(client.getNumOfPoints()+ pointlistService.getClientPointlist().getNumOfPoints());
         clientService.addClient(client);
         reservation.setClient(client);
+
+        VacationHouseOwner vacationHouseOwner = reservation.getResource().getOwner();
+        vacationHouseOwner.setNumOfPoints(vacationHouseOwner.getNumOfPoints() + pointlistService.getVendorPointlist().getNumOfPoints());
+        vacationHouseOwnerService.addOwner(vacationHouseOwner);
 
         vacationHouseReservationService.save(reservation);
         return reservation.getId();
@@ -565,7 +579,10 @@ public class VacationHouseService {
 
         int price = vacationHouse.getPricelist().getPrice() * appointments.size();
         int discount = userCategoryService.getClientCategoryBasedOnPoints(client.getNumOfPoints()).getDiscount();
-        price = price * (1 - discount) / 100;
+
+        if (discount > 0) {
+            price = price * (1 - discount / 100);
+        }
 
         List<Tag> tags = new ArrayList<Tag>();
         for (String text : dto.getAdditionalServicesStrings()) {
@@ -595,9 +612,9 @@ public class VacationHouseService {
         return periods;
     }
 
-    public Long createBusyPeriod(NewBusyPeriodDTO dto) {
+    public VacationHouseReservation createBusyPeriod(NewBusyPeriodDTO dto) {
 
-        VacationHouseReservation reservation = createBusyPeriodReservationFromDTO(dto);
+        VacationHouseReservation reservation = this.createBusyPeriodReservationFromDTO(dto);
 
         List<VacationHouseReservation> reservations = vacationHouseReservationService.getPossibleCollisionReservations(reservation.getResource().getId());
         for (VacationHouseReservation r : reservations) {
@@ -609,20 +626,20 @@ public class VacationHouseService {
             }
         }
         vacationHouseReservationService.save(reservation);
-        return reservation.getId();
+        return reservation;
     }
 
-    private VacationHouseReservation createBusyPeriodReservationFromDTO(NewBusyPeriodDTO dto) {
+    public VacationHouseReservation createBusyPeriodReservationFromDTO(NewBusyPeriodDTO dto) {
 
         List<Appointment> appointments = new ArrayList<Appointment>();
 
-        LocalDateTime startTime = LocalDateTime.of(dto.getStartYear(), Month.of(dto.getStartMonth()), dto.getStartDay(), 0, 0);
+        LocalDateTime startTime = LocalDateTime.of(dto.getStartYear(), Month.of(dto.getStartMonth()), dto.getStartDay(), 10, 0);
         LocalDateTime endTime = startTime.plusDays(1);
 
-        while (startTime.isBefore(LocalDateTime.of(dto.getEndYear(), Month.of(dto.getEndMonth()), dto.getEndDay(), 23, 59))) {
+        while (startTime.isBefore(LocalDateTime.of(dto.getEndYear(), Month.of(dto.getEndMonth()), dto.getEndDay(), 10, 0))) {
             appointments.add(new Appointment(startTime, endTime));
             startTime = endTime;
-            endTime = startTime.plusHours(1);
+            endTime = startTime.plusDays(1);
         }
         appointmentService.saveAll(appointments);
 
@@ -765,15 +782,15 @@ public class VacationHouseService {
     }
 
     private boolean checkOwnerName(VacationHouseFilterDTO vacationHouseFilterDTO, VacationHouse vacationHouse) {
-        return vacationHouseFilterDTO.getVacationHouseOwnerName().isEmpty() || (vacationHouse.getOwner().getFirstName() + " " + vacationHouse.getOwner().getFirstName()).equals(vacationHouseFilterDTO.getVacationHouseOwnerName());
+        return vacationHouseFilterDTO.getVacationHouseOwnerName().isEmpty() || vacationHouse.getOwner().getName().equals(vacationHouseFilterDTO.getVacationHouseOwnerName());
     }
 
     private boolean checkNumberOfVacationHouseBeds(VacationHouseFilterDTO vacationHouseFilterDTO, VacationHouse vacationHouse) {
-        return vacationHouseFilterDTO.getNumOfVacationHouseBeds().isEmpty() || Integer.parseInt(vacationHouseFilterDTO.getNumOfVacationHouseBeds()) == vacationHouse.getNumberOfBedsPerRoom();
+        return vacationHouseFilterDTO.getNumOfVacationHouseBeds().isEmpty() || Integer.parseInt(vacationHouseFilterDTO.getNumOfVacationHouseBeds()) <= vacationHouse.getNumberOfBedsPerRoom();
     }
 
     private boolean checkNumberOfVacationHouseRooms(VacationHouseFilterDTO vacationHouseFilterDTO, VacationHouse vacationHouse) {
-        return vacationHouseFilterDTO.getNumOfVacationHouseRooms().isEmpty() || Integer.parseInt(vacationHouseFilterDTO.getNumOfVacationHouseRooms()) == vacationHouse.getNumberOfRooms();
+        return vacationHouseFilterDTO.getNumOfVacationHouseRooms().isEmpty() || Integer.parseInt(vacationHouseFilterDTO.getNumOfVacationHouseRooms()) <= vacationHouse.getNumberOfRooms();
     }
 
     public List<ReservationDTO> getReservationsForReview(Long id) {
@@ -803,7 +820,6 @@ public class VacationHouseService {
 
         Client client = clientService.getById(dto.getClientID().toString());
 
-        quickReservation.getResource().removeQuickReservation(quickReservation);
         quickReservation.setClient(client);
         quickReservation.setQuickReservation(false);
         vacationHouse.addReservation(quickReservation);
@@ -818,6 +834,11 @@ public class VacationHouseService {
                     quickReservation.getAppointments().get(quickReservation.getAppointments().size() - 1).getEndTime().toString();
             String email = emailService.buildHTMLEmail(client.getName(), fullResponse, link, "Potvrda rezervacije");
             emailService.send(client.getEmail(), email, "Potvrda rezervacije");
+            VacationHouseOwner vacationHouseOwner = quickReservation.getResource().getOwner();
+            vacationHouseOwner.setNumOfPoints(vacationHouseOwner.getNumOfPoints() + pointlistService.getVendorPointlist().getNumOfPoints());
+            vacationHouseOwnerService.addOwner(vacationHouseOwner);
+            client.setNumOfPoints(client.getNumOfPoints()+ pointlistService.getClientPointlist().getNumOfPoints());
+            clientService.addClient(client);
             return id;
         }
         catch (ObjectOptimisticLockingFailureException e)   {
@@ -892,13 +913,10 @@ public class VacationHouseService {
         try{
             VacationHouseReservation vacationHouseReservation=vacationHouseReservationService.getVacationHouseReservation(id);
             LocalDateTime now=LocalDateTime.now();
-            int numberOfDaysBetween = (int) ChronoUnit.DAYS.between(now.toLocalDate(), vacationHouseReservation.getAppointments().get(0).getStartTime());
+            List<Appointment> appointments = vacationHouseReservation.getAppointments();
+            int numberOfDaysBetween = (int) ChronoUnit.DAYS.between(now.toLocalDate(), appointments.get(0).getStartTime());
             if(numberOfDaysBetween<3){
                 return  "Otkazivanje rezervacije je moguće najkasnije 3 dana do početka";
-            }
-            for (Appointment appointment :
-                    vacationHouseReservation.getAppointments()) {
-                appointmentService.delete(appointment);
             }
             vacationHouseReservationService.deleteReservation(vacationHouseReservation);
             return "Uspešno ste otkazali rezervaciju vikendicu";
@@ -926,5 +944,185 @@ public class VacationHouseService {
             }
         }
         return entities;
+    }
+
+    public IncomeReport getIncomeReport(Long id, IncomeReportDateRange dataRange) {
+        IncomeReport incomeReport = new IncomeReport();
+        HashMap<String, Integer> datesIncomes = new HashMap<String, Integer>();
+        List<VacationHouse> houses = this.getOwnersHouses(id);
+        List<VacationHouseReservation> reservations = new ArrayList<VacationHouseReservation>();
+
+        for (VacationHouse house : houses){
+            reservations.addAll(this.getHouseReservations(house.getId()));
+        }
+
+        for (VacationHouseReservation vacationHouseReservation : reservations){
+            for (Appointment appointment : vacationHouseReservation.getAppointments()){
+                if (ReservationInRange(appointment, dataRange)){
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy.");
+                    String key = appointment.getStartTime().format(formatter);
+                    try {
+                        int value  = datesIncomes.get(key) + vacationHouseReservation.getPrice();
+                        datesIncomes.replace(key, value);
+                    } catch (Exception e){
+                        datesIncomes.put(key, vacationHouseReservation.getPrice());
+                    }
+                }
+            }
+        }
+        for ( Map.Entry<String, Integer> entry : datesIncomes.entrySet()) {
+            String key = entry.getKey();
+            Integer value = entry.getValue();
+            incomeReport.addIncome(value);
+            incomeReport.addDate(key);
+        }
+        return incomeReport.sort(false);
+    }
+
+    public IncomeReport getAttendanceReport(Long id, AttendanceReportParams attendanceReportParams){
+        List<LocalDateTime> allDates = getDates(attendanceReportParams.startDate, attendanceReportParams.endDate);
+        List<VacationHouse> houses = this.getOwnersHouses(id);
+        List<VacationHouseReservation> reservations = new ArrayList<VacationHouseReservation>();
+
+        for (VacationHouse house : houses){
+            reservations.addAll(this.getHouseReservations(house.getId()));
+        }
+
+        if (attendanceReportParams.level.equals("weekly"))
+            return getWeeklyAttendanceReport(reservations, allDates);
+
+        else if (attendanceReportParams.level.equals("monthly"))
+            return getMonthlyAttendanceReport(reservations, allDates);
+
+        else
+            return getYearlyAttendanceReport(reservations, allDates);
+    }
+
+    private void makeReportFromDict(IncomeReport incomeReport, HashMap<String, Integer> datesIncomes){
+        for ( Map.Entry<String, Integer> entry : datesIncomes.entrySet()) {
+            String key = entry.getKey();
+            Integer value = entry.getValue();
+            incomeReport.addIncome(value);
+            incomeReport.addDate(key);
+        }
+    }
+
+    public int getNumberOfReservationsInRange(List<VacationHouseReservation> reservations, LocalDateTime startDate, LocalDateTime endDate){
+        int numOfReservations = 0;
+        for (VacationHouseReservation vacationHouseReservation : reservations){
+            if (!vacationHouseReservation.isQuickReservation() && !vacationHouseReservation.isBusyPeriod()){
+                if (ReservationInRangeAttendance(vacationHouseReservation.getAppointments(), startDate, endDate)){
+                    numOfReservations++;
+                }
+            }
+        }
+        return numOfReservations;
+    }
+    private boolean ReservationInRangeAttendance(List<Appointment> appointments, LocalDateTime startDate, LocalDateTime endDate){
+        for (Appointment appointment: appointments){
+            LocalDateTime date = appointment.getStartTime();
+            LocalDateTime date1;
+            date1 = date.withMinute(0);
+            date1 = date1.withHour(0);
+
+            if (date1.isAfter(startDate) && date1.isBefore(endDate)){
+                return true;
+            }
+            if (startDate.isEqual(date1) || endDate.isEqual(date1)){
+                return true;
+            }
+        }
+        return false;
+    }
+    private List<LocalDateTime> getDates(String startDateStr, String endDateStr){
+        List<LocalDateTime> dates = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy.");
+        LocalDateTime startDate = LocalDate.parse(startDateStr, formatter).atStartOfDay();
+        LocalDateTime endDate = LocalDate.parse(endDateStr, formatter).atStartOfDay();
+        while(!startDate.isAfter(endDate)){
+            dates.add(startDate);
+            startDate = startDate.plusDays(1);
+        }
+        return dates;
+    }
+
+    private void writeToDictReport(HashMap<String, Integer> datesIncomes, List<VacationHouseReservation> reservations, LocalDateTime start, LocalDateTime date){
+        int val = getNumberOfReservationsInRange(reservations, start, date);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy.");
+        String keyS = start.format(formatter);
+        String keyE = date.format(formatter);
+        String key = keyS + " - " + keyE;
+        try {
+            int value  = datesIncomes.get(key) + val;
+            datesIncomes.replace(key, value);
+        } catch (Exception e){
+            datesIncomes.put(key, val);
+        }
+    }
+
+    private IncomeReport getYearlyAttendanceReport(List<VacationHouseReservation> reservations, List<LocalDateTime> allDates){
+        IncomeReport incomeReport = new IncomeReport();
+        HashMap<String, Integer> datesIncomes = new HashMap<String, Integer>();
+        LocalDateTime start = allDates.get(0);
+        for (LocalDateTime date : allDates){
+            LocalDateTime lastDayOfYear  = LocalDateTime.of(date.getYear(), 12, 31, 0,0);
+            if (date.isEqual(lastDayOfYear)){
+                writeToDictReport(datesIncomes, reservations, start, date);
+                start = date.plusDays(1);
+            }
+        }
+        LocalDateTime lastDayOfYear  = LocalDateTime.of(allDates.get(allDates.size() -1).getYear(), 12, 31, 0,0);
+        if (!allDates.get(allDates.size() -1).isEqual(lastDayOfYear)){
+            writeToDictReport(datesIncomes, reservations, start, allDates.get(allDates.size() - 1));
+        }
+        makeReportFromDict(incomeReport, datesIncomes);
+
+        return incomeReport.sort(true);
+    }
+
+    private IncomeReport getMonthlyAttendanceReport(List<VacationHouseReservation> reservations, List<LocalDateTime> allDates){
+        IncomeReport incomeReport = new IncomeReport();
+        HashMap<String, Integer> datesIncomes = new HashMap<String, Integer>();
+        LocalDateTime start = allDates.get(0);
+        for (LocalDateTime date : allDates){
+            int lastDayOfMonthDate  = date.getMonth().length(date.toLocalDate().isLeapYear());
+            if (date.getDayOfMonth() == lastDayOfMonthDate){
+                writeToDictReport(datesIncomes, reservations, start, date);
+                start = date.plusDays(1);
+            }
+        }
+        int lastDayOfMonthDate  = allDates.get(allDates.size() -1).getMonth().length(allDates.get(allDates.size() -1).toLocalDate().isLeapYear());
+        if (allDates.get(allDates.size() -1).getDayOfMonth() != lastDayOfMonthDate){
+            writeToDictReport(datesIncomes, reservations, start, allDates.get(allDates.size() - 1));
+        }
+        makeReportFromDict(incomeReport, datesIncomes);
+
+        return incomeReport.sort(true);
+    }
+
+    private IncomeReport getWeeklyAttendanceReport(List<VacationHouseReservation> reservations, List<LocalDateTime> allDates){
+        IncomeReport incomeReport = new IncomeReport();
+        HashMap<String, Integer> datesIncomes = new HashMap<String, Integer>();
+        LocalDateTime start = allDates.get(0);
+        for (LocalDateTime date : allDates){
+            if (date.getDayOfWeek() == DayOfWeek.SUNDAY){
+                writeToDictReport(datesIncomes, reservations, start, date);
+                start = date.plusDays(1);
+            }
+        }
+        if (allDates.get(allDates.size() -1).getDayOfWeek() != DayOfWeek.SUNDAY){
+            writeToDictReport(datesIncomes, reservations, start, allDates.get(allDates.size() - 1));
+        }
+        makeReportFromDict(incomeReport, datesIncomes);
+
+        return incomeReport.sort(true);
+    }
+
+    private boolean ReservationInRange(Appointment appointment, IncomeReportDateRange dataRange){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy.");
+        LocalDateTime startDate = LocalDate.parse(dataRange.startDate, formatter).atStartOfDay();
+        LocalDateTime endDate = LocalDate.parse(dataRange.endDate, formatter).atStartOfDay();
+        LocalDateTime date = appointment.getStartTime();
+        return date.isAfter(startDate) && date.isBefore(endDate);
     }
 }

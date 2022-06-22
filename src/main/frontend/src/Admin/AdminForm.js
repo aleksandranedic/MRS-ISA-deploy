@@ -1,5 +1,11 @@
 import {Button, Form, Modal} from "react-bootstrap";
-import {backLink, loadingToast, profilePicturePlaceholder, updateForFetchedDataError, updateForFetchedDataSuccess} from "../Consts";
+import {
+    backLink,
+    loadingToast,
+    profilePicturePlaceholder,
+    updateForFetchedDataError,
+    updateForFetchedDataSuccess
+} from "../Consts";
 import React, {useState} from "react";
 import axios from "axios";
 import {ChangeClientPassword} from "../ClientPage/ChangeClientPassword";
@@ -71,9 +77,6 @@ export function AdminForm({show, setShow, administrator}) {
         if (!email) newErrors.email = 'Polje ne sme da bude prazno!'
         else if (!emailRegExp.test(email)) newErrors.email = 'Mora da sadrzi @gmail.com!'
 
-        console.log(Object.keys(newErrors).length);
-        console.log(newErrors);
-
         return newErrors
 
     }
@@ -87,8 +90,7 @@ export function AdminForm({show, setShow, administrator}) {
 
             if (administrator == null) {
                 registerAdmin()
-            }
-            else {
+            } else {
                 editAdmin()
             }
 
@@ -111,8 +113,7 @@ export function AdminForm({show, setShow, administrator}) {
             country: form.country
         }
 
-        axios.post(backLink+"/registration", userDTO).then(res => {
-            console.log(res.data);
+        axios.post(backLink + "/registration", userDTO).then(res => {
             window.location.reload();
         })
 
@@ -134,33 +135,29 @@ export function AdminForm({show, setShow, administrator}) {
         let editWithPhoto = false;
         var data = new FormData();
         var file = document.getElementById("fileImage").files[0];
-        if (typeof file !== "undefined"){
-            data.append("fileImage",file);
+        if (typeof file !== "undefined") {
+            data.append("fileImage", file);
             editWithPhoto = true;
         }
-        data.append("firstName",form.firstName);
-        data.append("lastName",form.lastName);
-        data.append("phoneNumber",form.phoneNumber);
-        data.append("email",form.email);
-        data.append("number",form.number);
-        data.append("street",form.street);
-        data.append("place",form.place);
-        data.append("country",form.country);
-        data.append("id",administrator.id);
+        data.append("firstName", form.firstName);
+        data.append("lastName", form.lastName);
+        data.append("phoneNumber", form.phoneNumber);
+        data.append("email", form.email);
+        data.append("number", form.number);
+        data.append("street", form.street);
+        data.append("place", form.place);
+        data.append("country", form.country);
+        data.append("id", administrator.id);
 
-        if (editWithPhoto){
-            axios.post(backLink+"/admin/editWithPhoto", data)
-            .then(res =>{
-                console.log(res.data);
-                window.location.reload();
-            })
-            .catch(error => {
-                console.log(error)
-            })
-        }
-        else{
-            axios.post(backLink+"/admin/edit", data).then(res =>{
-                console.log(res.data);
+        if (editWithPhoto) {
+            axios.post(backLink + "/admin/editWithPhoto", data)
+                .then(res => {
+                    window.location.reload();
+                })
+                .catch(error => {
+                })
+        } else {
+            axios.post(backLink + "/admin/edit", data).then(res => {
                 window.location.reload();
             })
         }
@@ -189,66 +186,94 @@ export function AdminForm({show, setShow, administrator}) {
     }
 
     var columnWidth = administrator !== null ? "72%" : "100%";
-    return <Modal size="lg" show={show} onHide={()=>setShow(false)}>
+    return <Modal size="lg" show={show} onHide={() => setShow(false)}>
         <Modal.Header closeButton>
             <Modal.Title>{administrator == null ? "Registracija" : "Izmena podataka"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
             <Form className="scrollbar scrollbar-primary">
                 <div className="d-flex">
-                    {administrator!== null && <div className="d-flex justify-content-center" style={{width:"28%"}}>
-                        <img id="profPic" src={form.image} className="rounded-circle" style={{objectFit: "cover", maxWidth: "25vh", minWidth: "25vh", maxHeight: "25vh", minHeight: "25vh"}}/>
-                        <Form.Control id="fileImage" onChange={e => setProfileImageView()} className="d-none" type="file" name="fileImage" style={{position:"absolute", width:"25vh", top:"12vh"}}/>  {/*ref={imagesRef} */}
-                        <p id="setNewProfileImage" className="d-flex justify-content-center align-items-center" onClick={e => opetFileExplorer()}><u>Postavite profilnu</u></p>
+                    {administrator !== null && <div className="d-flex justify-content-center" style={{width: "28%"}}>
+                        <img id="profPic" src={form.image} className="rounded-circle" style={{
+                            objectFit: "cover",
+                            maxWidth: "25vh",
+                            minWidth: "25vh",
+                            maxHeight: "25vh",
+                            minHeight: "25vh"
+                        }}/>
+                        <Form.Control id="fileImage" onChange={e => setProfileImageView()} className="d-none"
+                                      type="file" name="fileImage" style={{
+                            position: "absolute",
+                            width: "25vh",
+                            top: "12vh"
+                        }}/> {/*ref={imagesRef} */}
+                        <p id="setNewProfileImage" className="d-flex justify-content-center align-items-center"
+                           onClick={e => opetFileExplorer()}><u>Postavite profilnu</u></p>
                     </div>}
-                    <div style={{width:columnWidth}}>
-                        <Form.Group className="mb-3" controlId="formName">
+                    <div style={{width: columnWidth}}>
+                        <Form.Group className="ms-2 mb-3" controlId="formName">
                             <Form.Label>Ime</Form.Label>
                             <Form.Control type="text"
-                                        value={form.firstName}
-                                        onChange={e => setField('firstName', e.target.value)}
-                                        isInvalid={!!errors.firstName}/>
+                                          value={form.firstName}
+                                          onChange={e => setField('firstName', e.target.value)}
+                                          isInvalid={!!errors.firstName}/>
                             <Form.Control.Feedback type='invalid'>
                                 {errors.firstName}
                             </Form.Control.Feedback>
                         </Form.Group>
 
-                        <Form.Group className="mb-3" controlId="formSurname">
+                        <Form.Group className="ms-2 mb-3" controlId="formSurname">
                             <Form.Label>Prezime</Form.Label>
                             <Form.Control type="text"
-                                        value={form.lastName}
-                                        onChange={e => setField('lastName', e.target.value)}
-                                        isInvalid={!!errors.lastName}/>
+                                          value={form.lastName}
+                                          onChange={e => setField('lastName', e.target.value)}
+                                          isInvalid={!!errors.lastName}/>
                             <Form.Control.Feedback type='invalid'>
                                 {errors.lastName}
                             </Form.Control.Feedback>
                         </Form.Group>
-                     </div>
-                     </div>
-                     <div className="d-flex w-100  justify-content-strech">
-
-                        <Form.Group className="mb-3 me-2 w-50" controlId="formPhoneNumber">
+                    </div>
+                </div>
+                {administrator == null ?
+                    <div className="d-flex w-100  justify-content-strech">
+                        <Form.Group className="mb-3 ms-2 me-2 w-50" controlId="formPhoneNumber">
                             <Form.Label>Broj telefona</Form.Label>
                             <Form.Control type="text"
-                                        value={form.phoneNumber}
-                                        onChange={e => setField('phoneNumber', e.target.value)}
-                                        isInvalid={!!errors.phoneNumber}/>
+                                          value={form.phoneNumber}
+                                          onChange={e => setField('phoneNumber', e.target.value)}
+                                          isInvalid={!!errors.phoneNumber}/>
                             <Form.Control.Feedback type='invalid'>
                                 {errors.phoneNumber}
                             </Form.Control.Feedback>
                         </Form.Group>
-
                         <Form.Group className="mb-3 w-50" controlId="formBasicEmail">
                             <Form.Label>Email</Form.Label>
                             <Form.Control type="email"
-                                            value={form.email}
-                                            onChange={e => setField('email', e.target.value)}
-                                            isInvalid={!!errors.email}/>
+                                          value={form.email}
+                                          onChange={e => setField('email', e.target.value)}
+                                          isInvalid={!!errors.email}/>
                             <Form.Control.Feedback type='invalid'>
                                 {errors.email}
                             </Form.Control.Feedback>
                         </Form.Group>
                     </div>
+
+                    :
+
+                    <div className="d-flex w-100  justify-content-strech">
+                        <Form.Group className="mb-3 mt-4 ms-2 me-2 w-100" controlId="formPhoneNumber">
+                            <Form.Label>Broj telefona</Form.Label>
+                            <Form.Control type="text"
+                                          value={form.phoneNumber}
+                                          onChange={e => setField('phoneNumber', e.target.value)}
+                                          isInvalid={!!errors.phoneNumber}/>
+                            <Form.Control.Feedback type='invalid'>
+                                {errors.phoneNumber}
+                            </Form.Control.Feedback>
+                        </Form.Group>
+                    </div>
+
+                }
 
             </Form>
             <Form className="d-flex">
@@ -294,12 +319,14 @@ export function AdminForm({show, setShow, administrator}) {
                     </Form.Control.Feedback>
                 </Form.Group>
 
-                <Button variant="link" onClick={handleShowPassword}>Promenite lozinku</Button>
-                <ChangeClientPassword show={showPassword} setShow={setShowPassword}/>
+
             </Form>
+            {administrator !== null &&
+                <Button variant="link" onClick={handleShowPassword}>Promenite lozinku</Button>}
+            <ChangeClientPassword show={showPassword} setShow={setShowPassword}/>
         </Modal.Body>
         <Modal.Footer>
-            <Button variant="outline-secondary" onClick={()=>setShow(false)}>
+            <Button variant="outline-secondary" onClick={() => setShow(false)}>
                 Odustani
             </Button>
             {administrator == null ?

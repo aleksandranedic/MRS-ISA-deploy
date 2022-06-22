@@ -30,6 +30,9 @@ import PageNotFound from './PageNotFound';
 import {ResourceOverview} from "./Admin/ResourceOverview";
 import {UserOverview} from "./Admin/UserOverview";
 import {Conformation} from "./Admin/Conformation";
+import {AdventureOverview} from "./Home/AdventureOverview";
+import {VacationHouseOverview} from "./Home/VacationHouseOverview";
+import {BoatOverview} from "./Home/BoatOverview";
 
 
 function App() {
@@ -78,6 +81,9 @@ function App() {
                 <Route path='/registration' element={<Registration/>}/>
                 <Route path='/confirmedEmail/:token' element={<EmailConfirmed/>}/>
                 <Route path='/' element={<HomePage/>}/>
+                <Route path='/adventures' element={<AdventureOverview/>}/>
+                <Route path='/houses' element={<VacationHouseOverview/>}/>
+                <Route path='/boats' element={<BoatOverview/>}/>
                 <Route path='popup' element={<SuccessPopUp/>}/>
                 <Route path='pageNotFound' element={<PageNotFound/>}/>
             </Routes>

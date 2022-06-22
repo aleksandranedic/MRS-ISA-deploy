@@ -12,7 +12,6 @@ export function RegistrationRequests() {
     const fetchData = () => {
         axios.get(backLink+"/vendorRegistration").then(
             response => {
-                console.log(response)
                 setRequests(response.data)
             }
         )

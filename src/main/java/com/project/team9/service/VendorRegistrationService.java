@@ -133,9 +133,9 @@ public class VendorRegistrationService {
                     break;
             }
             String fullResponse = "Administratorov odgovor je: " + replay.getResponse() + "\n Uspešno ste registrovani. ";
-            String additionalText = "<a href=\"" + frontLink+"login" + "\">";
+            String additionalText = "<a href=" + frontLink +"login" + ">";
             String email = emailService.buildHTMLEmail(name, fullResponse, additionalText, "Registracija pružaoca usluga");
-            //emailService.send(registrationRequest.getEmail(), email, "Registracija pružaoca usluga");
+            emailService.send(registrationRequest.getEmail(), email, "Registracija pružaoca usluga");
             return "Odobravanje registracije je uspešno";
         }
     }
@@ -145,7 +145,7 @@ public class VendorRegistrationService {
         String additionalText="Niste registrovani jer Vam je administrator odbio registraciju";
         String name=replay.getFullName();
         String email = emailService.buildHTMLEmail(name, fullResponse, additionalText, "Registracija pružaoca usluga");
-        //emailService.send(registrationRequest.getEmail(), email, "Registracija pružaoca usluga");
+        emailService.send(registrationRequest.getEmail(), email, "Registracija pružaoca usluga");
         return service.deleteRegistrationRequest(replay.getRequestId());
     }
 

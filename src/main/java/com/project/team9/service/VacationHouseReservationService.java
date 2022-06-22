@@ -7,8 +7,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class VacationHouseReservationService {
@@ -30,7 +32,7 @@ public class VacationHouseReservationService {
     }
 
     public List<VacationHouseReservation> getAll() {
-        return repository.findAll();
+        return repository.findAll().stream().filter(vacationHouseReservation -> !vacationHouseReservation.isDeleted()).collect(Collectors.toCollection(ArrayList::new));
     }
 
     public List<VacationHouseReservation> getStandardReservations() {
@@ -76,5 +78,9 @@ public class VacationHouseReservationService {
     public void deleteReservation(VacationHouseReservation vacationHouseReservation) {
         vacationHouseReservation.setDeleted(true);
         repository.save(vacationHouseReservation);
+    }
+
+    public List<VacationHouseReservation> getPossibleCollisionReservationsForClient(Long clientId, Long resourceId) {
+        return repository.getPossibleCollisionReservationsForClient(clientId, resourceId);
     }
 }

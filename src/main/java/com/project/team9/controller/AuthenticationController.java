@@ -7,6 +7,7 @@ import com.project.team9.dto.UserDTO;
 import com.project.team9.model.user.Administrator;
 import com.project.team9.model.user.Client;
 import com.project.team9.model.user.User;
+import com.project.team9.model.user.UserTokenState;
 import com.project.team9.model.user.vendor.BoatOwner;
 import com.project.team9.model.user.vendor.FishingInstructor;
 import com.project.team9.model.user.vendor.VacationHouseOwner;
@@ -24,6 +25,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -32,10 +34,10 @@ import java.time.LocalDateTime;
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 public class AuthenticationController {
 
-    private TokenUtils tokenUtils;
-    private AuthenticationManager authenticationManager;
-    private PasswordEncoder passwordEncoder;
-    private UserServiceSecurity userServiceSecurity;
+    private final TokenUtils tokenUtils;
+    private final AuthenticationManager authenticationManager;
+    private final PasswordEncoder passwordEncoder;
+    private final UserServiceSecurity userServiceSecurity;
 
     @Autowired
     public AuthenticationController(PasswordEncoder passwordEncoder, TokenUtils tokenUtils, AuthenticationManager authenticationManager, UserServiceSecurity userServiceSecurity) {
@@ -65,6 +67,9 @@ public class AuthenticationController {
             if (user.getDeleted()) {
                 return ResponseEntity.ok(new LoginResponseDTO("Korisnik je obrisan", null, null, true));
             }
+            if (!user.isEnabled()) {
+                return ResponseEntity.ok(new LoginResponseDTO("Korisnik nije verifikovao svoj nalog", null, null, true));
+            }
             String jwt = tokenUtils.generateToken(user.getUsername());
 
             // Vrati token kao odgovor na uspesnu autentifikaciju
@@ -72,9 +77,27 @@ public class AuthenticationController {
 
             return ResponseEntity.ok(body);
         } catch (Exception e) {
-            return ResponseEntity.ok(new LoginResponseDTO("Uneli ste porgrešne podatke", null, null, true));
+            return ResponseEntity.ok(new LoginResponseDTO("Neuspešna prijava, probajte ponovo", null, null, true));
         }
     }
+//    @PostMapping(value = "/refresh")
+//    public ResponseEntity<UserTokenState> refreshAuthenticationToken(HttpServletRequest request) {
+//        String token = tokenUtils.getToken(request);
+//        String username = this.tokenUtils.getUsernameFromToken(token);
+//        User user = (User) this.userServiceSecurity.loadUserByUsername(username);
+//
+//        if (this.tokenUtils.canTokenBeRefreshed(token, user.getLastPasswordResetDate())) {
+//            String refreshedToken = tokenUtils.refreshToken(token);
+//            int expiresIn = tokenUtils.getExpiredIn();
+//
+//            return ResponseEntity.ok(new UserTokenState(refreshedToken, expiresIn));
+//        } else {
+//            UserTokenState userTokenState = new UserTokenState();
+//            return ResponseEntity.badRequest().body(userTokenState);
+//        }
+//    }
+
+
     @PostMapping(value ="/changePassword", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> changePassword(@RequestBody PasswordsDTO passwordsDTO) {
         try {

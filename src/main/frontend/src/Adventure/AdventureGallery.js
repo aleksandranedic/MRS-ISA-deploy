@@ -17,16 +17,14 @@ export function AdventureGallery({id, images})  {
     }, []);
 
     if (typeof adventure.imagePaths !== "undefined"){
-
-        let empty = images.length === 0;
+        images = []
 
         for (let i=0; i<adventure.imagePaths.length; i++){
             if (!adventure.imagePaths[i].includes(backLink)){
                 adventure.imagePaths[i] = backLink + adventure.imagePaths[i];
-                images.push({original:adventure.imagePaths[i], thumbnail:adventure.imagePaths[i]})
-            } else if (empty){
-                images.push({original:adventure.imagePaths[i], thumbnail:adventure.imagePaths[i]})
             }
+            images.push({original:adventure.imagePaths[i], thumbnail:adventure.imagePaths[i]})
+
         }
         return (<ImagesGallery images={images}/>)
     }

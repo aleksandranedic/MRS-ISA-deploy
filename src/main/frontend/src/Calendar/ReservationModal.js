@@ -5,6 +5,7 @@ import {backLink, missingDataErrors, notifyError, notifySuccess} from "../Consts
 import {TagInfo} from "../Info";
 import {MessagePopupModal} from "../MessagePopupModal";
 import {isLoggedIn} from "../Autentification";
+import {compareDateStrings, compareDateStringToToday, compareTimeStrings} from "./ReservationDateConverter";
 
 export function ReservationModal({show, setShow, type, resourceId, myPage, additionalServices}) {
 
@@ -47,10 +48,28 @@ export function ReservationModal({show, setShow, type, resourceId, myPage, addit
         if (formValues.startDate === "") {
             errors.startDate = missingDataErrors.date;
         }
+
+        else if (compareDateStringToToday(formValues.startDate)) {
+            errors.startDate = "Datum ne sme biti u prošlosti."
+        }
+
+
         if (type === "vacationHouse") {
             if (formValues.endDate === "") {
                 errors.endDate = missingDataErrors.date;
             }
+
+            else if (compareDateStringToToday(formValues.endDate)) {
+                errors.endDate = "Datum ne sme biti u prošlosti."
+            }
+
+            if (compareDateStrings(formValues.startDate, formValues.endDate)) {
+                errors.endDate = "Krajnji datum ne sme biti pre početnog."
+                errors.startDate = "Krajnji datum ne sme biti pre početnog."
+            }
+
+
+
         }
 
         if (type !== "vacationHouse") {
@@ -60,6 +79,11 @@ export function ReservationModal({show, setShow, type, resourceId, myPage, addit
 
             if (formValues.endTime === "") {
                 errors.endTime = missingDataErrors.time;
+            }
+
+            if (compareTimeStrings(formValues.startTime, formValues.endTime)) {
+                errors.startTime = "Krajnje vreme ne sme biti pre početnog."
+                errors.endTime = "Krajnje vreme ne sme biti pre početnog."
             }
         }
 
@@ -139,6 +163,7 @@ export function ReservationModal({show, setShow, type, resourceId, myPage, addit
     }
 
     const [showAlert, setShowAlert] = useState(false);
+    const [message, setMessage] = useState("");
 
     const handleSubmit = e => {
         e.preventDefault()
@@ -199,72 +224,92 @@ export function ReservationModal({show, setShow, type, resourceId, myPage, addit
             isQuickReservation: false
         }
 
-        console.log(dto);
 
         if (type === "adventure") {
-            axios
-                .post(backLink + "/adventure/reservation/add", dto)
-                .then(response => {
-                    if (response.data === -1){
-                        notifyError("Došlo je do greške prilikom zakazivanja. Molimo Vas pokušajte ponovo.")
-                    }
-                    else{
-                        notifySuccess("Avantura uspešno rezervisana.")
-                        setTimeout(function(){window.location.reload();}, 2000);
-                    }
-                })
-                .catch(error => {
+            axios.post(backLink + "/client/canReserve", dto).then(res => {
+                if (res.data === "Ok") {
+                    axios
+                        .post(backLink + "/adventure/reservation/add", dto)
+                        .then(response => {
+                            if (response.data === -1){
+                                notifyError("Došlo je do greške prilikom zakazivanja. Molimo Vas pokušajte ponovo.")
+                            }
+                            else{
+                                notifySuccess("Avantura uspešno rezervisana.")
+                                setTimeout(function(){window.location.reload();}, 2000);
+                            }
+                        })
+                        .catch(error => {
+                            setMessage("Termin koji ste pokušali da zauzmete nije dostupan. Pogledajte kalendar zauzetosti avanture i kalendar zauzetosti instruktora pecanja pa pokušajte ponovo.")
+                            setShowAlert(true);
+                        })
+                }
+                else {
+                    setMessage(res.data);
                     setShowAlert(true);
-                })
+                }
+
+            })
+
+
+
         } else if (type === "boat") {
-            axios
-                .post(backLink + "/boat/reservation/add", dto)
-                .then(response => {
-                    if (response.data === -1){
-                        notifyError("Došlo je do greške prilikom zakazivanja. Molimo Vas pokušajte ponovo.")
-                    }
-                    else{
-                        notifySuccess("Brod uspešno rezervisan.")
-                        setTimeout(function(){window.location.reload();}, 2000);
-                    }
-                })
-                .catch(error => {
-                    console.log(error);
-                    setShowAlert(true);
 
-                })
+            axios.post(backLink + "/client/canReserve", dto).then(res => {
+                if (res.data === "Ok") {
+                    axios
+                        .post(backLink + "/boat/reservation/add", dto)
+                        .then(response => {
+                            if (response.data === -1){
+                                notifyError("Došlo je do greške prilikom zakazivanja. Molimo Vas pokušajte ponovo.")
+                            }
+                            else{
+                                notifySuccess("Brod uspešno rezervisan.")
+                                setTimeout(function(){window.location.reload();}, 2000);
+                            }
+                        })
+                        .catch(error => {
+                            setMessage("Termin koji ste pokušali da zauzmete nije dostupan. Pogledajte kalendar zauzetosti broda pa pokušajte ponovo.")
+                            setShowAlert(true);
+
+                        })
+                }
+                else {
+                    setMessage(res.data);
+                    setShowAlert(true);
+                }
+            })
+
         } else if (type === "vacationHouse") {
-            axios
-                .post(backLink + "/house/reservation/add", dto)
-                .then(response => {
-                    if (response.data === -1){
-                        notifyError("Došlo je do greške prilikom zakazivanja. Molimo Vas pokušajte ponovo.")
-                    }
-                    else{
-                        notifySuccess("Vikendica uspešno rezervisana.")
-                        setTimeout(function(){window.location.reload();}, 2000);
-                    }
-                })
-                .catch(error => {
-                    console.log(error);
+            axios.post(backLink + "/client/canReserve", dto).then(res => {
+                if (res.data === "Ok") {
+                    axios
+                        .post(backLink + "/house/reservation/add", dto)
+                        .then(response => {
+                            if (response.data === -1){
+                                notifyError("Došlo je do greške prilikom zakazivanja. Molimo Vas pokušajte ponovo.")
+                            }
+                            else{
+                                notifySuccess("Vikendica uspešno rezervisana.")
+                                setTimeout(function(){window.location.reload();}, 2000);
+                            }
+                        })
+                        .catch(error => {
+                            setMessage("Termin koji ste pokušali da zauzmete nije dostupan. Pogledajte kalendar zauzetosti vikendice pa pokušajte ponovo.")
+                            setShowAlert(true);
+
+                        })
+                }
+                else {
+                    setMessage(res.data);
                     setShowAlert(true);
+                }
 
-                })
+            })
+
+
         }
 
-    }
-
-    function addAdditionalServicesTag() {
-        let id = 0;
-        if (formValues.additionalServices.length > 0) {
-            id = formValues.additionalServices.at(-1).id + 1;
-        }
-        setFormValues({
-            ...formValues,
-            additionalServices: [...formValues.additionalServices, {id: id, text: additionalServicesText}]
-        })
-
-        setAdditionalServicesText('')
     }
 
 
@@ -334,7 +379,7 @@ export function ReservationModal({show, setShow, type, resourceId, myPage, addit
                             </Form.Group>
 
                             <Form.Group className="ms-2 w-50 mt-2">
-                                <Form.Label>Vreme zavrsetka</Form.Label>
+                                <Form.Label>Vreme završetka</Form.Label>
                                 <Form.Control type="time" min="05:00" max="20:00"
                                               value={formValues.endTime}
                                               onChange={(e) => setField("endTime", e.target.value)}
@@ -414,7 +459,7 @@ export function ReservationModal({show, setShow, type, resourceId, myPage, addit
             <MessagePopupModal
                 show={showAlert}
                 setShow={setShowAlert}
-                message="Termin koji ste pokušali da zauzmete nije dostupan. Pogledajte kalendar zauzetosti i pokušajte ponovo."
+                message={message}
                 heading="Zauzet termin"
             />
         </>;

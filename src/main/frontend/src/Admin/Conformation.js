@@ -37,7 +37,7 @@ export function Conformation() {
             }
             axios.post(backLink + "/changePassword", dto).then(res=> {
                 console.log(res.data);
-                window.location.href = frontLink + "admin";
+                window.location.href = frontLink + "login";
             }).catch(err => {
                 console.log(err);
                 }

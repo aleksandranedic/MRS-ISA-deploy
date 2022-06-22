@@ -1,5 +1,4 @@
-import {Button, Card} from "react-bootstrap";
-import fishing3 from "../images/fishing3.jpg"
+import {Card} from "react-bootstrap";
 import {backLink, frontLink} from "../Consts";
 import StarRatings from "react-star-ratings";
 import {BsGeoAlt} from "react-icons/bs"

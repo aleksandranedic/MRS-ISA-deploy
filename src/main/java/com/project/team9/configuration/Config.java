@@ -128,8 +128,6 @@ public class Config {
         roleRepository.save(roleClient);
 
         Client client3 = getClient("/images/clients/3/client_3.jpg", "3", 3L, "Verica", "Markov", roleClient);
-        client3.setNumOfPenalties(2);
-        clientRepository.save(client3);
         Client client4 = getClient("/images/clients/4/client_4.jpg", "4", 4L, "Jovanka", "Prodanov", roleClient);
         Client client5 = getClient("/images/clients/5/client_5.jpg", "5", 5L, "Lena", "Sudarski", roleClient);
         Client client6 = getClient("/images/clients/6/client_6.jpg", "6", 6L, "Adrijana", "Radanov", roleClient);
@@ -195,7 +193,7 @@ public class Config {
 
         //----------------------------------------
 
-        addRegistrationRequest("U ponudi ima 3 avanture", "aleksa123", "Aleksu", "Aleksić", "aleksa.aleksić@gmail.com", "19", "FISHING_INSTRUCTOR", "Živim na lepom plavom Dunavu.");
+        addRegistrationRequest("U ponudi ima 3 avanture", "aleksa123", "Aleksa", "Aleksić", "aleksa.aleksic@gmail.com", "19", "FISHING_INSTRUCTOR", "Živim na lepom plavom Dunavu.");
         addRegistrationRequest("U ponudi ima 2 vikendice", "julia123", "Julia", "Annie", "jula.annie@gmail.com", "20", "VACATION_HOUSE_OWNER", "Volim da uživam na lepoj vikendici uz čašu vina.");
 
         //-----------------------------------------------
@@ -351,7 +349,6 @@ public class Config {
         addBoatQuickReservation(boat10, 6, 14, 8, 16);
         addBoatQuickReservation(boat10, 6, 19, 15, 21);
 
-
         addBoatReservation(boat11, client3, 6, 28, 7, 9);
         addBoatReservation(boat11, client4, 6, 30, 13, 15);
         addBoatReservation(boat11, client5, 7, 2, 17, 21);
@@ -368,6 +365,20 @@ public class Config {
 
         addBoatQuickReservation(boat12, 6, 14, 8, 16);
         addBoatQuickReservation(boat12, 6, 19, 15, 21);
+
+
+        //------------------------------------
+
+        client3.setNumOfPoints(16);
+        clientRepository.save(client3);
+        client4.setNumOfPoints(16);
+        clientRepository.save(client4);
+        client5.setNumOfPoints(16);
+        client5.setNumOfPenalties(2);
+        clientRepository.save(client5);
+        client6.setNumOfPoints(16);
+        client6.setNumOfPenalties(7);
+        clientRepository.save(client6);
 //
         //------------------------------------
 
@@ -476,8 +487,8 @@ public class Config {
         addComplaint(client5.getId(), vacationHouse13.getId(), "VACATION_HOUSE", "Nisam se lepo proveo");
         addComplaint(client5.getId(), boatOwner13.getId(), "BOAT_OWNER", "Neljubazan covek");
 
-        addCategory("Rozo-Plava", 0, 0, 2, "pink-blue", true, false);
-        addCategory("Plavo-Ljubicasta", 3, 5, 8, "blue-purple", true, false);
+        addCategory("Rozo-Plava", 0, 0, 10, "pink-blue", true, false);
+        addCategory("Plavo-Ljubicasta", 11, 5, 20, "blue-purple", true, false);
         addCategory("Rozo-Plava", 0, 0, 2, "pink-blue", false, true);
         addCategory("Plavo-Ljubicasta", 3, 5, 8, "blue-purple", false, true);
 

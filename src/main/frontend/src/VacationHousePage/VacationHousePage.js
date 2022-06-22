@@ -145,7 +145,9 @@ export function VacationHousePage() {
             </h2>
             <hr className="me-5 ms-5"/>
             <Calendar reservable={true} pricelist={{price: house.price}} resourceId={house.id} type={"vacationHouse"}
-                      events={events} myPage={myPage} additionalServices={house.additionalServices}/>
+                      events={events} myPage={myPage} additionalServices={house.additionalServices}
+                      cancellationFee = {house.cancellationFee} reservations = {reservations}
+            />
 
             {myPage && <>
                 <h2 className="me-5 ms-5 mt-5" id="reservations">

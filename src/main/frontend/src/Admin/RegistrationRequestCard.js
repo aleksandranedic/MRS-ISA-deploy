@@ -1,7 +1,6 @@
 import {Badge, Button, Card, Form, Modal} from "react-bootstrap";
 import React, {useState} from "react";
-import image from "../images/document.png"
-import {backLink, frontLink, notifyError, notifySuccess} from "../Consts";
+import {backLink, notifyError, notifySuccess} from "../Consts";
 import axios from "axios";
 import {ToastContainer} from "react-toastify";
 

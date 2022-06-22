@@ -24,16 +24,14 @@ function QuickReservations({reservations,additionalServices, name, address, enti
             userId: localStorage.getItem("userId"),
             entityId: id,
         }
-        console.log(dto)
         axios.post(backLink + "/" + entity + "/isSubscribed", dto).then(
             response => {
-                console.log(response.data)
                 setIsUserSubscribed(response.data)
             }
         )
     }
 
-    useState(() => {
+    useEffect(() => {
         checkSubscription()
     }, [])
     const subscribeUser = () => {
@@ -43,8 +41,8 @@ function QuickReservations({reservations,additionalServices, name, address, enti
         }
         axios.post(backLink + "/" + entity + "/subscribe", dto).then(
             response => {
-                console.log(response.data)
                 notifySuccess(response.data)
+                setTimeout(()=>window.location.reload(),3000)
             }
         )
     }
@@ -55,7 +53,6 @@ function QuickReservations({reservations,additionalServices, name, address, enti
         }
         axios.post(backLink + "/" + entity + "/unsubscribe", dto).then(
             response => {
-                console.log(response.data)
                 notifySuccess(response.data)
             }
         )
@@ -98,7 +95,7 @@ function QuickReservations({reservations,additionalServices, name, address, enti
                               autoPlay={false} autoPlaySpeed={9000000}>
                         {reservations.map((reservation) => (
                             <QuickReservation key={reservation.reservationID} type={type} reservation={reservation}
-                                              name={name} address={address} image={"./images/loginBackground.jpg"}
+                                              name={name} address={address} image={"./images/QuickReservationImage.jpg"}
                                               entity={entity} priceText={priceText} durationText={durationText}
                                               myPage={myPage} availableTags={additionalServices}/>
                         ))}

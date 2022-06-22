@@ -3,16 +3,16 @@ package com.project.team9.dto;
 import java.util.ArrayList;
 
 public class AdventureFilterDTO {
-    private boolean adventuresChecked;
+    private boolean adventuresChecked;//true
     private String numberOfClients;
     private String fishingInstructorName;
-    private ArrayList<Integer> priceRange;
+    private ArrayList<Integer> priceRange; //100-200
     private String reviewRating;
     private String startDate;
     private String endDate;
     private String startTime;
     private String endTime;
-    private String location;
+    private String location;  //this.street+" "+this.number+","+this.place+","+this.country;
     private boolean cancellationFee;
     public AdventureFilterDTO() {
     }

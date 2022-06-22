@@ -1,11 +1,11 @@
 import {Button, Form, Modal} from "react-bootstrap";
 import React, {useState, useRef} from "react";
-import {backLink, missingDataErrors} from "../Consts";
+import {backLink, missingDataErrors, notifySuccess} from "../Consts";
 import axios from "axios";
 import {useParams} from "react-router-dom";
 import DeleteUserPopUp from "../ClientPage/DeleteUserPopUp";
 import {ChangeClientPassword} from "../ClientPage/ChangeClientPassword";
-
+import {ToastContainer} from "react-toastify";
 
 export function FishingInstructorForm({show, setShow, fishingInstructor, profileImg}) {
 
@@ -91,9 +91,8 @@ export function FishingInstructorForm({show, setShow, fishingInstructor, profile
             axios
                 .post(backLink + "/fishinginstructor/edit", dto)
                 .then(response => {
-                    console.log(response);
-                    setShow(false);
-                    window.location.reload();
+                    notifySuccess("Nalog uspešno izmenjen.")
+                    setTimeout(function() {window.location.reload()}, 1500);
                 })
                 .catch(error => {
                     console.log(error);
@@ -237,8 +236,21 @@ export function FishingInstructorForm({show, setShow, fishingInstructor, profile
                         Izmeni
                     </Button>
                 </Modal.Footer>
+                <ToastContainer
+                position="top-center"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={true}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme={"colored"}
+                
+                />
             </Form>
-                <DeleteUserPopUp user={fishingInstructor} show={showDelete} handleClose={handleHideDelete}
+                <DeleteUserPopUp user={fishingInstructor} showDelete={showDelete} handleClose={handleHideDelete}
                                  type={"FISHING_INSTRUCTOR"}/>
 
         </Modal>

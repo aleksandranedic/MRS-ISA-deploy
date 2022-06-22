@@ -83,4 +83,8 @@ public class BoatReservationService {
         boatReservation.setDeleted(true);
         repository.save(boatReservation);
     }
+
+    public List<BoatReservation> getPossibleCollisionReservationsForClient(Long clientId, Long resourceId) {
+        return repository.getPossibleCollisionReservationsForClient(clientId, resourceId);
+    }
 }

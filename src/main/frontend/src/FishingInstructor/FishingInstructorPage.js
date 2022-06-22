@@ -12,7 +12,7 @@ import {ReservationCardGrid} from "../Calendar/ReservationCardGrid";
 import OwnerInfo from "../OwnerInfo"
 import {ReservationsToReview} from "../Calendar/ReservationsToReview";
 import {processReservationsForUsers} from "../ProcessToEvent";
-import {isLoggedIn, isMyPage, isClient} from "../Autentification";
+import {isMyPage} from "../Autentification";
 import BeginButton from "../BeginButton.js"
 import Ratings from '../Reviews/Ratings';
 import {Complaints} from "../Complaints";
@@ -37,7 +37,6 @@ const FishingInstructors = ({id}) => {
 
     const fetchReservations = () => {
         axios.get(backLink + "/adventure/reservation/fishingInstructor/" + id).then(res => {
-            console.log(res.data);
             setReservations(res.data);
             setEvents(processReservationsForUsers(res.data));
         })
@@ -48,7 +47,6 @@ const FishingInstructors = ({id}) => {
             .get(backLink + "/fishinginstructor/getStat/" + id)
             .then(res => {
                 setStat(res.data);
-                console.log(res.data);
             });
     };
 
@@ -130,7 +128,7 @@ const FishingInstructors = ({id}) => {
 
             <hr className="me-5 ms-5"/>
 
-            <Calendar events={events} reservable={false}/>
+            <Calendar events={events} reservable={false} reservations = {reservations}  myPage={myPage}/>
 
 
             {myPage && <div id="reservations">

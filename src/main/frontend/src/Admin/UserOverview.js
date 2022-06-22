@@ -111,8 +111,28 @@ export function UserOverview() {
                 }
             ).catch(error => {
             setShowAlert(true);
+        })
+    }
 
+    function deleteBoatOwner(boatOwner) {
+        axios.post(backLink + "/boatowner/delete/" + boatOwner.id)
+            .then(response => {
 
+                    window.location.reload();
+                }
+            ).catch(error => {
+            setShowAlert(true);
+        })
+    }
+
+    function deleteVacationHouseOwner(houseOwner) {
+        axios.post(backLink + "/houseowner/delete/" + houseOwner.id)
+            .then(response => {
+
+                    window.location.reload();
+                }
+            ).catch(error => {
+            setShowAlert(true);
         })
     }
 
@@ -254,7 +274,7 @@ export function UserOverview() {
                                             {boatOwner.phoneNumber}
                                         </div>
                                     </div>
-                                    <Button className="mt-3 w-50">Obriši</Button>
+                                    <Button className="mt-3 w-50" onClick={()=>deleteBoatOwner(boatOwner)}>Obriši</Button>
 
                                 </Card>
                             </Col>
@@ -335,7 +355,7 @@ export function UserOverview() {
                                         </div>
                                     </div>
 
-                                    <Button className="mt-3 w-50"
+                                    <Button onClick={()=>deleteClient(client)} className="mt-3 w-50"
 
                                     >Obriši</Button>
 
@@ -375,7 +395,7 @@ export function UserOverview() {
                                             {houseOwner.phoneNumber}
                                         </div>
                                     </div>
-                                    <Button className="mt-3 w-50">Obriši</Button>
+                                    <Button className="mt-3 w-50" onClick={()=>deleteVacationHouseOwner(houseOwner)}>Obriši</Button>
 
                                 </Card>
                             </Col>

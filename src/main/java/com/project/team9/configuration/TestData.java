@@ -62,7 +62,7 @@ public class TestData {
         FishingInstructor fishingInstructor = new FishingInstructor(profilePhoto, encodePassword(firstName.toLowerCase() + "123"), firstName, lastName, firstName.toLowerCase() + "." + lastName.toLowerCase() + "@gmail.com", "0601234567", address, false, "", biography, role, new ArrayList<Adventure>());
 
         fishingInstructor.setId(id);
-
+        fishingInstructor.setEnabled(true);
         return fishingInstructor;
     }
 
@@ -70,6 +70,7 @@ public class TestData {
 
         VacationHouseOwner vacationHouseOwner = new VacationHouseOwner(profilePhoto, encodePassword(firstName.toLowerCase() + "123"), firstName, lastName, firstName.toLowerCase() + "." + lastName.toLowerCase() + "@gmail.com", "0601234567", address, false, "", role);
         vacationHouseOwner.setId(id);
+        vacationHouseOwner.setEnabled(true);
         return vacationHouseOwner;
     }
 
@@ -77,18 +78,21 @@ public class TestData {
 
         BoatOwner boatOwner = new BoatOwner(profilePhoto, encodePassword(firstName.toLowerCase() + "123"), firstName, lastName, firstName.toLowerCase() + "." + lastName.toLowerCase() + "@gmail.com", "0601234567", address, false, "", new ArrayList<>(), role);
         boatOwner.setId(id);
+        boatOwner.setEnabled(true);
         return boatOwner;
     }
 
     public Administrator createAdministrator(Long id, String firstName, String lastName, Address address, Image profilePhoto, Role role, boolean isSuperAdministrator) {
         Administrator administrator = new Administrator(profilePhoto, encodePassword(firstName.toLowerCase() + "123"), firstName, lastName, firstName.toLowerCase() + "." + lastName.toLowerCase() + "@gmail.com", "0601234567", address, false, role, isSuperAdministrator);
         administrator.setId(id);
+        administrator.setEnabled(true);
         return administrator;
     }
 
     public Client createClient(Long id, String firstName, String lastName, Address address, Image profilePhoto, Role role) {
         Client client = new Client(profilePhoto, encodePassword(firstName.toLowerCase() + "123"), firstName, lastName, firstName.toLowerCase() + "." + lastName.toLowerCase() + "@gmail.com", "0601234567", address, false, role);
         client.setId(id);
+        client.setEnabled(true);
         return client;
     }
 
@@ -139,7 +143,7 @@ public class TestData {
     }
 
     public RegistrationRequest createRegistrationRequest(String text, String response, String password, String firstName, String lastName, String email, String phoneNumber, String place, String number, String street, String country, String userRole, String biography, String registrationRationale) {
-        return new RegistrationRequest(text, response, encodePassword(password), firstName, lastName, email, phoneNumber, place, number, street, country, userRole, biography, registrationRationale);
+        return new RegistrationRequest(text, response, password, firstName, lastName, email, phoneNumber, place, number, street, country, userRole, biography, registrationRationale);
     }
 
     public DeleteRequest createDeleteRequest(String text, String response, Long userId, String userType) {

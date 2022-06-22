@@ -18,7 +18,6 @@ export function Complaints({type, toWhom}) {
             fetchShow();
         }
     }, [])
-    console.log(toWhom);
     const fetchShow = () => {
 
         if (type === "adventure") {
@@ -88,11 +87,9 @@ export function Complaints({type, toWhom}) {
             axios
                 .post(backLink + "/complaints/add", dto)
                 .then(response => {
-                    console.log(response);
                     window.location.reload();
                 })
                 .catch(error => {
-                    console.log(error)
                 })
 
         }

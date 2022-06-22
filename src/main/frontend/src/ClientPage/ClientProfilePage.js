@@ -55,7 +55,6 @@ const Client = () => {
             .get(backLink + "/review/getStat/" + id)
             .then(res => {
                 setStat(res.data);
-                console.log(res.data);
             });
     };
 
@@ -77,21 +76,18 @@ const Client = () => {
 
     const fetchAdventures = ()  => {
         axios.get(backLink + "/adventure/subs/" + id).then(res => {
-            console.log(res.data);
             setAdventures(res.data);
         })
     }
 
     const fetchBoats = ()  => {
         axios.get(backLink + "/boat/subs/" + id).then(res => {
-            console.log(res.data);
             setBoats(res.data);
         })
     }
 
     const fetchHouses = ()  => {
         axios.get(backLink + "/house/subs/" + id).then(res => {
-            console.log(res.data);
             setHouses(res.data);
         })
     }
@@ -146,7 +142,7 @@ const Client = () => {
                 <h2 className="me-5 ms-5 mt-5">Kalendar</h2>
 
                 <hr className="me-5 ms-5"/>
-                <Calendar id="calendar" events={events} reservable={false}/>
+                <Calendar id="calendar" events={events} reservable={false} reservations = {reservations}  myPage={myPage}/>
 
                 <h2 className="me-5 ms-5 mt-5" id="reservations">Rezervacije</h2>
                 <hr className="me-5 ms-5"/>
@@ -162,7 +158,7 @@ const Client = () => {
                 <hr className="me-5 ms-5"/>
                 <Collapse in={open}>
                     <div id="reservationsTable">
-                        <ReservationsTable  reservations={reservations} showResource={false}/>
+                        <ReservationsTable  reservations={reservations} showResource={true}/>
                     </div>
                 </Collapse>
             </>

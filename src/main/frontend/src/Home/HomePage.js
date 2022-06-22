@@ -89,7 +89,9 @@ export function HomePage() {
                     <div className="resource d-flex">
                         <img className="resource-img" src={require("../images/homepage/pexels-pixabay-290518.jpg")}/>
                         <div>
-                            <h1>VIKENDICE</h1>
+                            <a style={{color: "#3f3f3f", textDecoration: "none"}} href="#vacationHomes">
+                                <h1>VIKENDICE</h1>
+                            </a>
 
                             <p>Pronađite najbolje vile, vikendice, kuće i splavove za iznajmljivanje, za vaš savršeni
                                 odmor,
@@ -97,7 +99,7 @@ export function HomePage() {
 
 
                             <div className="d-flex w-100 justify-content-end">
-                                <Button href="#vacationHomes" variant="outline-secondary"
+                                <Button href={frontLink + "houses"} variant="outline-secondary"
                                         className="me-2 move-button">PREGLEDAJ</Button>
                             </div>
 
@@ -107,11 +109,12 @@ export function HomePage() {
                     <div className="resource d-flex">
                         <img className="resource-img" src={require("../images/homepage/pexels-bianca-754355.jpg")}/>
                         <div>
-                            <h1>BRODOVI</h1>
+                            <a style={{color: "#3f3f3f", textDecoration: "none"}} href="#boats">
+                            <h1>BRODOVI</h1></a>
                             <p>Ukoliko vaša ideja savršenog odmora uključuje boravak na vodenoj površini,
                                 pronađite jahtu, čamac ili brod koji bi ispunio vaš ideal.</p>
                             <div className="d-flex w-100 justify-content-end">
-                                <Button href="#boats" variant="outline-secondary"
+                                <Button href={frontLink + "boats"} variant="outline-secondary"
                                         className="me-2 move-button">PREGLEDAJ</Button>
                             </div>
                         </div>
@@ -120,11 +123,12 @@ export function HomePage() {
                     <div className="resource d-flex">
                         <img className="resource-img" src={require("../images/homepage/pexels-pixabay-39854.jpg")}/>
                         <div>
-                            <h1>AVANTURE</h1>
+                            <a style={{color: "#3f3f3f", textDecoration: "none"}} href="#adventures">
+                                <h1>AVANTURE</h1></a>
                             <p>Želite stručno mišljenje i da vas provede kroz najrazličitije pecaroške destinacije?
                                 Pogledajte avanture koje vam nude baš to iskustvo.</p>
                             <div className="d-flex w-100 justify-content-end">
-                                <Button href="#adventures" variant="outline-secondary"
+                                <Button href={frontLink + "adventures"} variant="outline-secondary"
                                         className="me-2 move-button">PREGLEDAJ</Button>
                             </div>
 

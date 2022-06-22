@@ -43,7 +43,7 @@ function ReportModal({closeModal, showModal, type}) {
         <Modal.Body  id="reports-modal">
             <Tabs defaultActiveKey="IstorijaRezervacija" id="uncontrolled-tab-example" className="mb-3">
                 <Tab eventKey="IstorijaRezervacija" title="Istorija rezervacija"> 
-                    <ReservationsTable reservations={reservations} showResource={false}/> 
+                    <ReservationsTable reservations={reservations} showResource={true}/>
                 </Tab>
                 <Tab  eventKey="ProsecnaOcena" title="Prosečne ocene">
                     <AverageRatingResources resources={resources} type={type}/>

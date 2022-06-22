@@ -105,7 +105,7 @@ function QuickReservation({reservation,availableTags, name, address, image, enti
 
     return (
         <Card className="houseQuickReservationCard m-3 mt-4 me-5" style={{borderRadius: "15PX", minWidth: "45vh"}}>
-            <Card.Img variant="top" src={require("./images/loginBackground.jpg")}
+            <Card.Img variant="top" src={require("./images/QuickReservationImage.jpg")}
                       style={{borderRadius: "15px 15px 0px 0px", maxHeight: "28vh", minHeight: "28vh"}}/>
             <Card.ImgOverlay className="p-2">
                 <div className='w-100 d-flex justify-content-end m-0 p-0'>

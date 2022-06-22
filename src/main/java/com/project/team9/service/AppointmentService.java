@@ -11,7 +11,6 @@ public class AppointmentService {
 
     private final AppointmentRepository repository;
 
-
     public AppointmentService(AppointmentRepository repository) {
         this.repository = repository;
     }

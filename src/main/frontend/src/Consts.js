@@ -29,9 +29,9 @@ export const missingDataErrors = {
 }
 
 export const frontLink = "https://the-savana-frontend.herokuapp.com/"; //"http://localhost:3000/"
-export const backLink = "https://the-savana-backend.herokuapp.com" //backLink = "http://localhost:4444"; 
-export const profilePicturePlaceholder = "https://the-savana-frontend.herokuapp.com/images/profilePicturePlaceholder.png"; //"http://localhost:3000/images/profilePicturePlaceholder.png"
-export const locationPlaceholder = {iconUrl:"https://the-savana-frontend.herokuapp.com/images/location.png", iconSize:[38,38]}
+export const backLink = "https://the-savana-backend.herokuapp.com" //"http://localhost:4444"
+export const profilePicturePlaceholder ="https://the-savana-frontend.herokuapp.com/images/profilePicturePlaceholder.png" //"http://localhost:3000/images/profilePicturePlaceholder.png"
+export const locationPlaceholder = {iconUrl:"https://the-savana-frontend.herokuapp.com/images/location.png", iconSize:[38,38]} //{iconUrl:"http://localhost:3000/images/location.png", iconSize:[38,38]}
 export const NominatimBaseUrl = "https://nominatim.openstreetmap.org/search?"
 
 export const responsive = {

@@ -4,8 +4,9 @@ import {Badge, Button, ButtonGroup, Card, Col, FloatingLabel, Form, Row, ToggleB
 import {MdStars} from "react-icons/md";
 import {TiDeleteOutline} from "react-icons/ti";
 import "./LoyaltyCategories.css"
-import {backLink, missingDataErrors} from "../Consts";
+import {backLink, missingDataErrors, notifyError} from "../Consts";
 import axios from "axios";
+import {ToastContainer} from "react-toastify";
 
 const loyaltyColorPalette = {
     'pink-blue': "linear-gradient( 64.5deg,  rgba(245,116,185,1) 14.7%, rgba(89,97,223,1) 88.7% )",
@@ -89,10 +90,13 @@ export function LoyaltyCategories() {
             type: type
         }
 
-        console.log(dto);
         axios.post(backLink + "/category/add", dto).then(res => {
             window.location.reload();
-        })
+        }).catch( error => {
+            notifyError("Kategorija sa datim brojem bodova već postoji.")
+            }
+
+        )
     }
 
 
@@ -136,6 +140,21 @@ export function LoyaltyCategories() {
     }
 
     return (<div className="d-flex" style={{height: "100vh"}}>
+
+        <ToastContainer
+            position="top-center"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={true}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme={"colored"}
+
+        />
+
         <div className="w-25" style={{backgroundColor: "#f7f8f9"}}>
             <Sidebar/>
         </div>

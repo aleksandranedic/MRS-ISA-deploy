@@ -2,6 +2,7 @@ package com.project.team9.controller;
 
 import com.project.team9.dto.VendorRequestReviewDenialDTO;
 import com.project.team9.dto.VendorReviewDTO;
+import com.project.team9.dto.VendorReviewResponseDTO;
 import com.project.team9.service.PenaltyReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

@@ -1,15 +1,16 @@
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from '@fullcalendar/timegrid';
-import {Button, Card, Dropdown} from "react-bootstrap";
+import {Button, Card, Dropdown, Form, Image, Modal} from "react-bootstrap";
 import React, {useState} from "react";
 import interactionPlugin from "@fullcalendar/interaction";
 import {ReservationModal} from "./ReservationModal";
 import {BusyPeriodModal} from "./BusyPeriodModal";
 import {BsPlusLg} from "react-icons/bs";
 import {isLoggedIn, isClient} from "../Autentification";
+import {ReservationAdditionalInfoModal} from "./ReservationAdditionalInfoModal";
 
-export function Calendar({reservable, pricelist, type, resourceId, events, myPage, additionalServices}) {
+export function Calendar({reservable, pricelist, type, resourceId, events, myPage, additionalServices, cancellationFee, reservations}) {
 
     let perHour = true;
     if (type === "vacationHouse") {
@@ -17,6 +18,8 @@ export function Calendar({reservable, pricelist, type, resourceId, events, myPag
     }
     const [showReservationDialog, setShowReservationDialog] = useState(false);
     const [showBusyPeriodDialog, setShowBusyPeriodDialog] = useState(false);
+    const [showReservation, setShowReservation] = useState(false);
+    const [reservation, setReservation] = useState("");
 
     const calendarRef = React.createRef();
 
@@ -59,6 +62,19 @@ export function Calendar({reservable, pricelist, type, resourceId, events, myPag
                         timeZone="CEST"
                         events={events}
                         ref={calendarRef}
+                        eventClick={
+                            function(arg){
+                                for (let index in reservations) {
+                                    if (reservations.at(index).id.toString() === arg.event.id) {
+
+                                        console.log(reservations.at(index))
+                                        setReservation(reservations.at(index));
+                                        setShowReservation(true);
+                                    }
+                                }
+
+                            }
+                        }
                     />
                 </div>
 
@@ -67,7 +83,7 @@ export function Calendar({reservable, pricelist, type, resourceId, events, myPag
                     <div className="d-flex flex-column align-items-center justify-content-center">
                         <div className="d-flex align-items-center justify-content-center"
                              style={{
-                                 width: "12rem", height: "10rem",
+                                 width: "12rem", height: "14.5rem",
                                  background: "linear-gradient(50deg, rgba(13,110,252,1) 38%, rgba(13,252,229,1) 96%)",
                                  borderRadius: "0.5rem"
                              }}
@@ -75,7 +91,7 @@ export function Calendar({reservable, pricelist, type, resourceId, events, myPag
                         >
                             <Card style={{
                                 width: "11.5rem",
-                                height: "9.5rem",
+                                height: "14rem",
                                 backgroundColor: "white",
                                 border: "none"
                             }}>
@@ -86,7 +102,7 @@ export function Calendar({reservable, pricelist, type, resourceId, events, myPag
                                         <h6 style={{color: "rgba(13,252,229,1)"}}>{perHour ? "Sat" : "Dan"}</h6>
                                     </div>
 
-
+                                    <p className="text-justify h-25" style={{fontSize: "11px", color: "rgb(58,58,58)"}}>-Naknada za otkazivanje: {cancellationFee}% od ukupne cene rezervacije.</p>
                                 </Card.Body>
                             </Card>
                         </div>
@@ -112,8 +128,13 @@ export function Calendar({reservable, pricelist, type, resourceId, events, myPag
                                   resourceId={resourceId} myPage={myPage} additionalServices={additionalServices}/>
                 <BusyPeriodModal show={showBusyPeriodDialog} setShow={setShowBusyPeriodDialog} type={type}
                                  resourceId={resourceId}/>
+
             </div>
-        </></>;
+
+
+        </>
+            <ReservationAdditionalInfoModal reservation={reservation} setShowReservation={setShowReservation} showReservation={showReservation} myPage={myPage}/>
+        </>;
     }
     return html;
 }

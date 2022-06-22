@@ -6,17 +6,15 @@ import com.project.team9.model.Address;
 import com.project.team9.model.Image;
 import com.project.team9.model.Tag;
 import com.project.team9.model.buissness.Pricelist;
-import com.project.team9.model.reservation.AdventureReservation;
 import com.project.team9.model.reservation.Appointment;
 import com.project.team9.model.reservation.BoatReservation;
-import com.project.team9.model.reservation.VacationHouseReservation;
-import com.project.team9.model.reservation.VacationHouseReservation;
-import com.project.team9.model.resource.Adventure;
 import com.project.team9.model.resource.Boat;
 import com.project.team9.model.user.Client;
 import com.project.team9.model.user.vendor.BoatOwner;
 import com.project.team9.repo.BoatRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Bean;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +25,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
@@ -46,6 +46,7 @@ public class BoatService {
     private final TagService tagService;
     private final ImageService imageService;
     private final BoatReservationService boatReservationService;
+    private final BoatOwnerService boatOwnerService;
     private final AppointmentService appointmentService;
     private final ClientService clientService;
     private final ReservationService reservationService;
@@ -58,13 +59,14 @@ public class BoatService {
     private String frontLink;
 
     @Autowired
-    public BoatService(BoatRepository repository, AddressService addressService, PricelistService pricelistService, TagService tagService, ImageService imageService, BoatReservationService boatReservationService, AppointmentService appointmentService, ClientService clientService, ReservationService reservationService, ClientReviewService clientReviewService, EmailService emailService, PointlistService pointlistService, UserCategoryService userCategoryService) {
+    public BoatService(BoatRepository repository, AddressService addressService, PricelistService pricelistService, TagService tagService, ImageService imageService, BoatReservationService boatReservationService, BoatOwnerService boatOwnerService, AppointmentService appointmentService, ClientService clientService, ReservationService reservationService, ClientReviewService clientReviewService, EmailService emailService, PointlistService pointlistService, UserCategoryService userCategoryService) {
         this.repository = repository;
         this.addressService = addressService;
         this.pricelistService = pricelistService;
         this.tagService = tagService;
         this.imageService = imageService;
         this.boatReservationService = boatReservationService;
+        this.boatOwnerService = boatOwnerService;
         this.appointmentService = appointmentService;
         this.clientService = clientService;
         this.reservationService = reservationService;
@@ -87,10 +89,9 @@ public class BoatService {
     @Transactional(readOnly = false)
     public Boolean addQuickReservation(Long id, BoatQuickReservationDTO quickReservationDTO) throws ReservationNotAvailableException {
         Boat boat;
-        try{
+        try {
             boat = this.getByIdConcurrent(id);
-        }
-        catch (PessimisticLockingFailureException plfe){
+        } catch (PessimisticLockingFailureException plfe) {
             return false;
         }
         BoatReservation reservation = getReservationFromDTO(quickReservationDTO, true);
@@ -108,7 +109,8 @@ public class BoatService {
         boatReservationService.addReservation(reservation);
         boat.addReservation(reservation);
         this.addBoat(boat);
-            Client client = clientService.getById(String.valueOf(reservation.getClient().getId()));
+        for (Long userId : boat.getSubClientUsernames()) {
+            Client client = clientService.getById(String.valueOf(userId));
             String fullResponse = "Napravljena je akcija na koji ste se preplatili\n " +
                     "Avanture na brod kоšta " + reservation.getPrice() + "\n" +
                     "Zakazani period je od " + reservation.getAppointments().get(0).getStartTime().toString() + " do " +
@@ -116,6 +118,7 @@ public class BoatService {
             String additionalText = "<a href=\"" + frontLink + "\">Prijavite se i rezervišite je</a>";
             String emailForSubbedUser = emailService.buildHTMLEmail(client.getName(), fullResponse, additionalText, "Notifikacija o pretplacenim akcijama");
             emailService.send(client.getEmail(), emailForSubbedUser, "Notifikacija o pretplacenim akcijama");
+        }
         return true;
     }
 
@@ -129,7 +132,7 @@ public class BoatService {
         Appointment currApp = startDateAppointment;
         for (int i = 0; i < dto.getDuration() - 1; i++) {
             LocalDateTime startDate = currApp.getEndTime();
-            LocalDateTime endDate = startDate.plusDays(1);
+            LocalDateTime endDate = startDate.plusHours(1);
             currApp = new Appointment(startDate, endDate);
             appointmentService.save(currApp);
             appointments.add(currApp);
@@ -157,8 +160,7 @@ public class BoatService {
         updateQuickReservation(originalReservation, newReservation);
         try {
             boatReservationService.saveQuickReservationAsReservation(originalReservation);
-        }
-        catch (ObjectOptimisticLockingFailureException e) {
+        } catch (ObjectOptimisticLockingFailureException e) {
             return false;
         }
         this.addBoat(boat);
@@ -204,18 +206,25 @@ public class BoatService {
         quickReservation.setClient(client);
         quickReservation.setQuickReservation(false);
         boat.addReservation(quickReservation);
-        try{
+        try {
             Long id = boatReservationService.saveQuickReservationAsReservation(quickReservation); //ovo moze da pukne
             repository.save(boat);
-            String link = "<a href=\"" + frontLink+">Prijavi i rezervišivi još neku avanturu na brodu</a>";
-            String fullResponse = "Uspešno ste rezervisali akciju na brod sa imenom "+ quickReservation.getResource().getTitle() +"\n " +
+            String link = "<a href=\"" + frontLink + ">Prijavi i rezervišivi još neku avanturu na brodu</a>";
+            String fullResponse = "Uspešno ste rezervisali akciju na brod sa imenom " + quickReservation.getResource().getTitle() + "\n " +
                     "Rezervaicija broda kоšta " + quickReservation.getPrice() + "\n" +
                     "Zakazani period je od " + quickReservation.getAppointments().get(0).getStartTime().toString() + " do " +
                     quickReservation.getAppointments().get(quickReservation.getAppointments().size() - 1).getEndTime().toString();
             String email = emailService.buildHTMLEmail(client.getName(), fullResponse, link, "Potvrda brze rezervacije");
             emailService.send(client.getEmail(), email, "Potvrda brze rezervacije");
+
+            BoatOwner boatOwner = quickReservation.getResource().getOwner();
+            boatOwner.setNumOfPoints(boatOwner.getNumOfPoints() + pointlistService.getVendorPointlist().getNumOfPoints());
+            boatOwnerService.addOwner(boatOwner);
+
+            client.setNumOfPoints(client.getNumOfPoints() + pointlistService.getClientPointlist().getNumOfPoints());
+            clientService.addClient(client);
             return id;
-        } catch (ObjectOptimisticLockingFailureException e){
+        } catch (ObjectOptimisticLockingFailureException e) {
             return null;
         }
     }
@@ -232,7 +241,7 @@ public class BoatService {
         List<Boat> boats = repository.findByOwnerId(owner_id);
         List<BoatCardDTO> boatCards = new ArrayList<BoatCardDTO>();
         for (Boat boat : boats) {
-            if (boat.getDeleted()){
+            if (boat.getDeleted()) {
                 continue;
             }
             String address = boat.getAddress().getStreet() + " " + boat.getAddress().getNumber() + ", " + boat.getAddress().getPlace() + ", " + boat.getAddress().getCountry();
@@ -260,14 +269,14 @@ public class BoatService {
         return repository.findOneById(id);
     }
 
+    @Cacheable(value = "boatDTO", unless="#result == null")
     public BoatDTO getBoatDTO(Long id) {
         Boat bt;
         try {
-            bt= repository.getById(id);
+            bt= this.getBoat(id);
             if (bt.getDeleted())
                 return null;
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             return null;
         }
         String address = bt.getAddress().getStreet() + " " + bt.getAddress().getNumber() + ", " + bt.getAddress().getPlace() + ", " + bt.getAddress().getCountry();
@@ -328,10 +337,9 @@ public class BoatService {
     @Transactional(readOnly = false)
     public boolean deleteById(Long id) {
         Boat boat;
-        try{
+        try {
             boat = this.getByIdConcurrent(id);
-        }
-        catch (PessimisticLockingFailureException plfe){
+        } catch (PessimisticLockingFailureException plfe) {
             return false;
         }
         if (getReservationsForBoat(id).size() > 0)
@@ -489,7 +497,7 @@ public class BoatService {
         List<ReservationDTO> reservations = new ArrayList<ReservationDTO>();
 
         for (BoatReservation br : boatReservationService.getAll()) {
-            if (Objects.equals(br.getResource().getId(), id) && !br.isQuickReservation() && !br.isBusyPeriod()) {
+            if (Objects.equals(br.getResource().getId(), id) && !br.isBusyPeriod()) {
                 reservations.add(createDTOFromReservation(br));
             }
         }
@@ -497,11 +505,11 @@ public class BoatService {
 
     }
 
-    public boolean haveReservations(Long id){
+    public boolean haveReservations(Long id) {
         return getReservationsForBoat(id).size() > 0 || haveReservedQuickReservations(id);
     }
 
-    private boolean haveReservedQuickReservations(Long id){
+    private boolean haveReservedQuickReservations(Long id) {
         for (BoatReservation br : boatReservationService.getAll()) {
             if (Objects.equals(br.getResource().getId(), id) && br.isQuickReservation() && br.getClient() != null) {
                 return true;
@@ -525,10 +533,9 @@ public class BoatService {
     @Transactional(readOnly = false)
     public Long createReservation(NewReservationDTO dto) throws ReservationNotAvailableException {
         BoatReservation reservation;
-        try{
+        try {
             reservation = createFromDTO(dto);
-        }
-        catch (PessimisticLockingFailureException plfe){
+        } catch (PessimisticLockingFailureException plfe) {
             return Long.valueOf("-1");
         }
 
@@ -540,18 +547,22 @@ public class BoatService {
                 }
             }
         }
-        Client client=clientService.getById(String.valueOf(dto.getClientId()));
-        String link = "<a href=\"" + frontLink+">Prijavi i rezervišivi još neku avanturu</a>";
-        String fullResponse = "Uspešno ste rezervisali avanturu na brodu sa imenom "+ reservation.getResource().getTitle() +"\n " +
+        Client client = clientService.getById(String.valueOf(dto.getClientId()));
+        String link = "<a href=\"" + frontLink + ">Prijavi i rezervišivi još neku avanturu</a>";
+        String fullResponse = "Uspešno ste rezervisali avanturu na brodu sa imenom " + reservation.getResource().getTitle() + "\n " +
                 "Rezervacija broda kоšta " + reservation.getPrice() + "\n" +
                 "Zakazani period je od " + reservation.getAppointments().get(0).getStartTime().toString() + " do " +
                 reservation.getAppointments().get(reservation.getAppointments().size() - 1).getEndTime().toString();
         String email = emailService.buildHTMLEmail(client.getName(), fullResponse, link, "Potvrda rezervacije");
         emailService.send(client.getEmail(), email, "Potvrda rezervacije");
         boatReservationService.save(reservation);
-        client.setNumOfPoints(client.getNumOfPoints()+ pointlistService.getClientPointlist().getNumOfPoints());
+        client.setNumOfPoints(client.getNumOfPoints() + pointlistService.getClientPointlist().getNumOfPoints());
         clientService.addClient(client);
         reservation.setClient(client);
+
+        BoatOwner boatOwner = reservation.getResource().getOwner();
+        boatOwner.setNumOfPoints(boatOwner.getNumOfPoints() + pointlistService.getVendorPointlist().getNumOfPoints());
+        boatOwnerService.addOwner(boatOwner);
 
         boatReservationService.save(reservation);
 
@@ -577,10 +588,12 @@ public class BoatService {
         }
         appointmentService.saveAll(appointments);
 
-
         int price = boat.getPricelist().getPrice() * appointments.size();
         int discount = userCategoryService.getClientCategoryBasedOnPoints(client.getNumOfPoints()).getDiscount();
-        price = price * (1 - discount) / 100;
+
+        if (discount > 0) {
+            price = price * (1 - discount / 100);
+        }
 
         List<Tag> tags = new ArrayList<Tag>();
         for (String text : dto.getAdditionalServicesStrings()) {
@@ -626,7 +639,8 @@ public class BoatService {
                 r.isBusyPeriod(),
                 r.isQuickReservation(),
                 r.getResource().getId(),
-                r.getId()
+                r.getId(),
+                "boat"
         );
     }
 
@@ -786,9 +800,9 @@ public class BoatService {
                     boatsToDelete) {
                 boats.remove(boat);
             }
-            List<EntityDTO> list=new ArrayList<>();
-            for (Boat boat:
-                 boats) {
+            List<EntityDTO> list = new ArrayList<>();
+            for (Boat boat :
+                    boats) {
                 list.add(new EntityDTO(
                         boat.getTitle(),
                         "boat",
@@ -846,7 +860,7 @@ public class BoatService {
     }
 
     private boolean checkBoatMaxSpeed(BoatFilterDTO boatFilterDTO, Boat boat) {
-        return boatFilterDTO.getBoatMaxSpeed().isEmpty() || Double.parseDouble(boatFilterDTO.getBoatMaxSpeed()) == boat.getTopSpeed();
+        return boatFilterDTO.getBoatMaxSpeed().isEmpty() || Double.parseDouble(boatFilterDTO.getBoatMaxSpeed()) <= boat.getTopSpeed();
     }
 
     private boolean checkEngineNum(BoatFilterDTO boatFilterDTO, Boat boat) {
@@ -854,11 +868,11 @@ public class BoatService {
     }
 
     private boolean checkBoatEnginePower(BoatFilterDTO boatFilterDTO, Boat boat) {
-        return (boatFilterDTO.getBoatEnginePower().isEmpty() || Double.parseDouble(boatFilterDTO.getBoatEnginePower()) == boat.getEngineStrength());
+        return (boatFilterDTO.getBoatEnginePower().isEmpty() || Double.parseDouble(boatFilterDTO.getBoatEnginePower()) <= boat.getEngineStrength());
     }
 
     private boolean checkOwnerName(BoatFilterDTO boatFilterDTO, Boat boat) {
-        return ((boat.getOwner().getFirstName() + " " + boat.getOwner().getLastName()).equals(boatFilterDTO.getBoatOwnerName()) || boatFilterDTO.getBoatOwnerName().isEmpty());
+        return ((boat.getOwner().getName()).equals(boatFilterDTO.getBoatOwnerName()) || boatFilterDTO.getBoatOwnerName().isEmpty());
     }
 
     private boolean checkBoatType(BoatFilterDTO boatFilterDTO, Boat boat) {
@@ -894,8 +908,8 @@ public class BoatService {
     }
 
     public List<EntityDTO> getClientsSubscribedBoats() {
-        List<EntityDTO> entities=new ArrayList<>();
-        for(Boat boat :getBoats()){
+        List<EntityDTO> entities = new ArrayList<>();
+        for (Boat boat : getBoats()) {
             entities.add(new EntityDTO(
                     boat.getTitle(),
                     "boat",
@@ -912,7 +926,7 @@ public class BoatService {
     public List<EntityDTO> findBoatsThatClientIsSubbedTo(Long client_id) {
         List<EntityDTO> boats = new ArrayList<>();
 
-        for (Boat b: repository.findAll()) {
+        for (Boat b : repository.findAll()) {
             if (b.getSubClientUsernames().contains(client_id)) {
                 boats.add(new EntityDTO(
                         b.getTitle(),
@@ -929,20 +943,17 @@ public class BoatService {
     }
 
     public String cancelBoatReservation(Long id) {
-        try{
-            BoatReservation boatReservation=boatReservationService.getBoatReservation(id);
-            LocalDateTime now=LocalDateTime.now();
-            int numberOfDaysBetween = (int) ChronoUnit.DAYS.between(now.toLocalDate(), boatReservation.getAppointments().get(0).getStartTime());
-            if(numberOfDaysBetween<3){
-                return  "Otkazivanje rezervacije je moguće najkasnije 3 dana do početka";
-            }
-            for (Appointment appointment :
-                    boatReservation.getAppointments()) {
-                appointmentService.delete(appointment);
+        try {
+            BoatReservation boatReservation = boatReservationService.getBoatReservation(id);
+            LocalDateTime now = LocalDateTime.now();
+            List<Appointment> appointments = boatReservation.getAppointments();
+            int numberOfDaysBetween = (int) ChronoUnit.DAYS.between(now.toLocalDate(), appointments.get(0).getStartTime());
+            if (numberOfDaysBetween < 3) {
+                return "Otkazivanje rezervacije je moguće najkasnije 3 dana do početka";
             }
             boatReservationService.deleteReservation(boatReservation);
             return "Uspešno ste otkazali rezervaciju vikendicu";
-        }catch (Exception exception){
+        } catch (Exception exception) {
             return "Otkazivanje rezervacije nije uspelo probajte ponovo";
         }
     }
@@ -965,5 +976,190 @@ public class BoatService {
             }
         }
         return entities;
+    }
+
+    public IncomeReport getAttendanceReport(Long id, AttendanceReportParams attendanceReportParams) {
+        List<LocalDateTime> allDates = getDates(attendanceReportParams.startDate, attendanceReportParams.endDate);
+        List<Boat> boats = this.getOwnersBoats(id);
+        List<BoatReservation> reservations = new ArrayList<BoatReservation>();
+
+        for (Boat boat : boats) {
+            reservations.addAll(this.getBoatReservations(boat.getId()));
+        }
+
+        if (attendanceReportParams.level.equals("weekly"))
+            return getWeeklyAttendanceReport(reservations, allDates);
+
+        else if (attendanceReportParams.level.equals("monthly"))
+            return getMonthlyAttendanceReport(reservations, allDates);
+
+        else
+            return getYearlyAttendanceReport(reservations, allDates);
+    }
+
+    private IncomeReport getYearlyAttendanceReport(List<BoatReservation> reservations, List<LocalDateTime> allDates) {
+        IncomeReport incomeReport = new IncomeReport();
+        HashMap<String, Integer> datesIncomes = new HashMap<String, Integer>();
+        LocalDateTime start = allDates.get(0);
+        for (LocalDateTime date : allDates) {
+            LocalDateTime lastDayOfYear = LocalDateTime.of(date.getYear(), 12, 31, 0, 0);
+            if (date.isEqual(lastDayOfYear)) {
+                writeToDictReport(datesIncomes, reservations, start, date);
+                start = date.plusDays(1);
+            }
+        }
+        LocalDateTime lastDayOfYear = LocalDateTime.of(allDates.get(allDates.size() - 1).getYear(), 12, 31, 0, 0);
+        if (!allDates.get(allDates.size() - 1).isEqual(lastDayOfYear)) {
+            writeToDictReport(datesIncomes, reservations, start, allDates.get(allDates.size() - 1));
+        }
+        makeReportFromDict(incomeReport, datesIncomes);
+
+        return incomeReport.sort(true);
+    }
+
+    private IncomeReport getMonthlyAttendanceReport(List<BoatReservation> reservations, List<LocalDateTime> allDates) {
+        IncomeReport incomeReport = new IncomeReport();
+        HashMap<String, Integer> datesIncomes = new HashMap<String, Integer>();
+        LocalDateTime start = allDates.get(0);
+        for (LocalDateTime date : allDates) {
+            int lastDayOfMonthDate = date.getMonth().length(date.toLocalDate().isLeapYear());
+            if (date.getDayOfMonth() == lastDayOfMonthDate) {
+                writeToDictReport(datesIncomes, reservations, start, date);
+                start = date.plusDays(1);
+            }
+        }
+        int lastDayOfMonthDate = allDates.get(allDates.size() - 1).getMonth().length(allDates.get(allDates.size() - 1).toLocalDate().isLeapYear());
+        if (allDates.get(allDates.size() - 1).getDayOfMonth() != lastDayOfMonthDate) {
+            writeToDictReport(datesIncomes, reservations, start, allDates.get(allDates.size() - 1));
+        }
+        makeReportFromDict(incomeReport, datesIncomes);
+
+        return incomeReport.sort(true);
+    }
+
+    private IncomeReport getWeeklyAttendanceReport(List<BoatReservation> reservations, List<LocalDateTime> allDates) {
+        IncomeReport incomeReport = new IncomeReport();
+        HashMap<String, Integer> datesIncomes = new HashMap<String, Integer>();
+        LocalDateTime start = allDates.get(0);
+        for (LocalDateTime date : allDates) {
+            if (date.getDayOfWeek() == DayOfWeek.SUNDAY) {
+                writeToDictReport(datesIncomes, reservations, start, date);
+                start = date.plusDays(1);
+            }
+        }
+        if (allDates.get(allDates.size() - 1).getDayOfWeek() != DayOfWeek.SUNDAY) {
+            writeToDictReport(datesIncomes, reservations, start, allDates.get(allDates.size() - 1));
+        }
+        makeReportFromDict(incomeReport, datesIncomes);
+
+        return incomeReport.sort(true);
+    }
+
+    private IncomeReport makeReportFromDict(IncomeReport incomeReport, HashMap<String, Integer> datesIncomes) {
+        for (Map.Entry<String, Integer> entry : datesIncomes.entrySet()) {
+            String key = entry.getKey();
+            Integer value = entry.getValue();
+            incomeReport.addIncome(value);
+            incomeReport.addDate(key);
+        }
+        return incomeReport;
+    }
+
+    public void writeToDictReport(HashMap<String, Integer> datesIncomes, List<BoatReservation> reservations, LocalDateTime start, LocalDateTime date) {
+        int val = getNumberOfReservationsInRange(reservations, start, date);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy.");
+        String keyS = start.format(formatter);
+        String keyE = date.format(formatter);
+        String key = keyS + " - " + keyE;
+        try {
+            int value = datesIncomes.get(key) + val;
+            datesIncomes.replace(key, value);
+        } catch (Exception e) {
+            datesIncomes.put(key, val);
+        }
+    }
+
+    public int getNumberOfReservationsInRange(List<BoatReservation> reservations, LocalDateTime startDate, LocalDateTime endDate) {
+        int numOfReservations = 0;
+        for (BoatReservation boatReservation : reservations) {
+            if (!boatReservation.isQuickReservation() && !boatReservation.isBusyPeriod()) {
+                if (ReservationInRangeAttendance(boatReservation.getAppointments(), startDate, endDate)) {
+                    numOfReservations++;
+                }
+            }
+        }
+        return numOfReservations;
+    }
+
+    public boolean ReservationInRangeAttendance(List<Appointment> appointments, LocalDateTime startDate, LocalDateTime endDate) {
+        for (Appointment appointment : appointments) {
+            LocalDateTime date = appointment.getStartTime();
+            LocalDateTime date1;
+            date1 = date.withMinute(0);
+            date1 = date1.withHour(0);
+
+            if (date1.isAfter(startDate) && date1.isBefore(endDate)) {
+                return true;
+            }
+            if (startDate.isEqual(date1) || endDate.isEqual(date1)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public List<LocalDateTime> getDates(String startDateStr, String endDateStr) {
+        List<LocalDateTime> dates = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy.");
+        LocalDateTime startDate = LocalDate.parse(startDateStr, formatter).atStartOfDay();
+        LocalDateTime endDate = LocalDate.parse(endDateStr, formatter).atStartOfDay();
+        while (!startDate.isAfter(endDate)) {
+            dates.add(startDate);
+            startDate = startDate.plusDays(1);
+        }
+        return dates;
+    }
+
+    public IncomeReport getIncomeReport(Long id, IncomeReportDateRange dataRange) {
+        IncomeReport incomeReport = new IncomeReport();
+        HashMap<String, Integer> datesIncomes = new HashMap<String, Integer>();
+        List<Boat> boats = this.getOwnersBoats(id);
+        List<BoatReservation> reservations = new ArrayList<BoatReservation>();
+
+        for (Boat boat : boats) {
+            reservations.addAll(this.getBoatReservations(boat.getId()));
+        }
+
+        for (BoatReservation boatReservation : reservations) {
+            if (boatReservation.isQuickReservation() || boatReservation.isBusyPeriod())
+                continue;
+            for (Appointment appointment : boatReservation.getAppointments()) {
+                if (ReservationInRange(appointment, dataRange)) {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy.");
+                    String key = appointment.getStartTime().format(formatter);
+                    try {
+                        int value = datesIncomes.get(key) + boatReservation.getPrice();
+                        datesIncomes.replace(key, value);
+                    } catch (Exception e) {
+                        datesIncomes.put(key, boatReservation.getPrice());
+                    }
+                }
+            }
+        }
+
+        makeReportFromDict(incomeReport, datesIncomes);
+
+        return incomeReport.sort(false);
+    }
+
+    private boolean ReservationInRange(Appointment appointment, IncomeReportDateRange dataRange) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy.");
+        LocalDateTime startDate = LocalDate.parse(dataRange.startDate, formatter).atStartOfDay();
+        LocalDateTime endDate = LocalDate.parse(dataRange.endDate, formatter).atStartOfDay();
+        LocalDateTime date = appointment.getStartTime();
+        LocalDateTime date1;
+        date1 = date.withMinute(0);
+        date1 = date1.withHour(0);
+        return date.isAfter(startDate) && date.isBefore(endDate) || (startDate.isEqual(date1) || endDate.isEqual(date1));
     }
 }

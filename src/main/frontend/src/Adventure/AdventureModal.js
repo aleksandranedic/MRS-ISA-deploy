@@ -1,7 +1,7 @@
 import React, {useRef, useState} from "react";
 import {Button, Col, Form, InputGroup, Modal} from "react-bootstrap";
 import axios from "axios";
-import {backLink, frontLink, missingDataErrors} from "../Consts";
+import {backLink, frontLink, missingDataErrors, notifySuccess} from "../Consts";
 import AdventureFormImages from "./AdventureFormImages";
 import {TagInfo} from "../Info";
 import {MessagePopupModal} from "../MessagePopupModal";
@@ -17,11 +17,18 @@ function getDto(formValues, formReference, imagesRef) {
         formValues.fishingEquipmentText.push(formValues.fishingEquipment.at(index).text);
     }
 
+    var imgs = []
+      for (let i=0; i<formValues.images.length;i++){
+        if (!formValues.images[i].includes("blob")){
+          imgs.push(formValues.images[i].replace(backLink, ''));
+        }
+    }
+
     let dto = new FormData(formReference.current);
     dto.append("id", formValues.ownerId);
     dto.append("numberOfClients", formValues.numberOfClients);
     dto.append("ownerId", formValues.ownerId);
-    dto.append("imagePaths", formValues.imagePaths)
+    dto.append("imagePaths", imgs)
     dto.append("cancellationFee", formValues.cancellationFee);
     dto.append("price", formValues.price);
     dto.append("title", formValues.title);
@@ -33,7 +40,7 @@ function getDto(formValues, formReference, imagesRef) {
     dto.append("rulesAndRegulations", formValues.rulesAndRegulations);
     dto.append("additionalServicesText", formValues.additionalServicesText);
     dto.append("fishingEquipmentText", formValues.fishingEquipmentText);
-    dto.append("imagePaths", formValues.imagePaths)
+
 
     let files = imagesRef.current.files;
     let images = []
@@ -72,12 +79,11 @@ export function AdventureModal({adventure, show, setShow, ownerId}) {
     function handleDelete() {
         axios.post(backLink + "/adventure/delete/" + adventure.id)
             .then(response => {
-                console.log(response);
-                window.location.href = frontLink + "fishingInstructor/" + adventure.owner.id;
+                notifySuccess("Uspešno ste obrisali avanturu.")
+                setTimeout(function(){window.location.href = frontLink + "fishingInstructor/" + adventure.owner.id},1500);
                 }
             ).catch(error => {
             setShowAlert(true);
-
         })
     }
 
@@ -99,6 +105,7 @@ export function AdventureModal({adventure, show, setShow, ownerId}) {
             
             let dto = getDto(formValues, formReference, imagesRef);
             let url = backLink + "/adventure/updateAdventure/" + adventure.id;
+            
             
             axios
             .post(url, dto)
@@ -460,7 +467,7 @@ function getInitialAdventureState(adventure, ownerId) {
             fishingEquipment: adventure.fishingEquipment,
             rulesAndRegulations: adventure.rulesAndRegulations,
             ownerId: adventure.owner.id,
-            imagePaths: [],
+            imagePaths: images,
             images: images
         };
 

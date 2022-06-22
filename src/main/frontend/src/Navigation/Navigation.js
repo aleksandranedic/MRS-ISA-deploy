@@ -145,7 +145,7 @@ export default function Navigation(props) {
                             Odjavi se
                         </Button>
                         :
-                        <Button className="ms-3 font-monospace text-center"
+                        <Button className="ms-3 font-monospace text-center d-flex align-items-center justify-content-center"
                                 style={{
                                     background: "#eaeaea",
                                     borderColor: "#eaeaea",

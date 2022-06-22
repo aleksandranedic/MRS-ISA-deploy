@@ -48,7 +48,6 @@ function AddQuickReservation({showModal, closeModal, entity, priceText, duration
                     close();
                 }
             }).catch(error => {
-                close();
                 setShowAlert(true);
             })
         }

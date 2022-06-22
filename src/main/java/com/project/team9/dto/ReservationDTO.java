@@ -16,12 +16,13 @@ public class ReservationDTO {
     Long resourceId;
     boolean isBusyPeriod;
     boolean isQuickReservation;
+    private String entityType;
     Long id;
 
     public ReservationDTO() {
     }
 
-    public ReservationDTO(List<Appointment> appointments, int numberOfClients, List<Tag> additionalServices, int price, Client client, String resourceTitle, boolean isBusyPeriod, boolean isQuickReservation, Long resourceId) {
+    public ReservationDTO(List<Appointment> appointments, int numberOfClients, List<Tag> additionalServices, int price, Client client, String resourceTitle, boolean isBusyPeriod, boolean isQuickReservation, Long resourceId, String entityType) {
         this.appointments = appointments;
         this.numberOfClients = numberOfClients;
         this.additionalServices = additionalServices;
@@ -31,9 +32,10 @@ public class ReservationDTO {
         this.isBusyPeriod = isBusyPeriod;
         this.isQuickReservation = isQuickReservation;
         this.resourceId = resourceId;
+        this.entityType = entityType;
     }
 
-    public ReservationDTO(List<Appointment> appointments, int numberOfClients, List<Tag> additionalServices, int price, Client client, String resourceTitle, boolean isBusyPeriod, boolean isQuickReservation, Long resourceId, Long id) {
+    public ReservationDTO(List<Appointment> appointments, int numberOfClients, List<Tag> additionalServices, int price, Client client, String resourceTitle, boolean isBusyPeriod, boolean isQuickReservation, Long resourceId, Long id, String entityType) {
         this.appointments = appointments;
         this.numberOfClients = numberOfClients;
         this.additionalServices = additionalServices;
@@ -44,6 +46,7 @@ public class ReservationDTO {
         this.isBusyPeriod = isBusyPeriod;
         this.isQuickReservation = isQuickReservation;
         this.id = id;
+        this.entityType = entityType;
     }
 
     public Long getId() {
@@ -124,5 +127,13 @@ public class ReservationDTO {
 
     public void setQuickReservation(boolean quickReservation) {
         isQuickReservation = quickReservation;
+    }
+
+    public String getEntityType() {
+        return entityType;
+    }
+
+    public void setEntityType(String entityType) {
+        this.entityType = entityType;
     }
 }

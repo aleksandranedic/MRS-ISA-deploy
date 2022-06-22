@@ -29,7 +29,7 @@ public class User implements UserDetails {
     private String phoneNumber;
     @OneToOne
     private Address address;
-    private Boolean enabled = true;
+    private Boolean enabled = false;
     private Boolean deleted;
     private Timestamp lastPasswordResetDate;
     @OneToOne

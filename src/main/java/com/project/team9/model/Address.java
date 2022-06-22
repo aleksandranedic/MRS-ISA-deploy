@@ -29,6 +29,7 @@ public class Address {
         StringBuilder stringBuilder=new StringBuilder();
         for (int i = 0; i <tokens.length-1; i++) {
             stringBuilder.append(tokens[i]);
+            stringBuilder.append(" ");
         }
         this.street=stringBuilder.toString().trim();
     }

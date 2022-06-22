@@ -1,6 +1,7 @@
 package com.project.team9.controller;
 
 import com.project.team9.dto.*;
+import com.project.team9.exceptions.CannotDeleteException;
 import com.project.team9.model.resource.Boat;
 import com.project.team9.model.user.vendor.BoatOwner;
 import com.project.team9.service.BoatOwnerService;
@@ -23,9 +24,9 @@ public class BoatOwnerController {
     private final BoatService boatService;
 
     @Autowired
-    public BoatOwnerController(BoatOwnerService service, BoatService vacationHouseService) {
+    public BoatOwnerController(BoatOwnerService service, BoatService boatService) {
         this.service = service;
-        this.boatService = vacationHouseService;
+        this.boatService = boatService;
     }
 
     @GetMapping
@@ -43,12 +44,12 @@ public class BoatOwnerController {
 
     @PostMapping(value = "getIncomeReport/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public IncomeReport getIncomeReport(@PathVariable String id, IncomeReportDateRange dateRange) {
-        return service.getIncomeReport(Long.parseLong(id), dateRange);
+        return boatService.getIncomeReport(Long.parseLong(id), dateRange);
     }
 
     @PostMapping(value = "getAttendanceReport/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public IncomeReport getAttendanceReport(@PathVariable String id, AttendanceReportParams attendanceReportParams) {
-        return service.getAttendanceReport(Long.parseLong(id), attendanceReportParams);
+        return boatService.getAttendanceReport(Long.parseLong(id), attendanceReportParams);
     }
 
     @PostMapping(value = "updateOwner/{id}")
@@ -94,6 +95,11 @@ public class BoatOwnerController {
     @GetMapping("/getStat/{id}")
     public UserStatDTO getUserStat(@PathVariable Long id) {
         return service.getUserStat(id);
+    }
+
+    @PostMapping("/delete/{id}")
+    Long delete(@PathVariable Long id) throws CannotDeleteException {
+        return service.deleteById(id);
     }
 }
 

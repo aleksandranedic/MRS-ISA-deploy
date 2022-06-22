@@ -3,7 +3,7 @@ import {Modal, Button} from 'react-bootstrap'
 import AddBoatForm from './AddBoatForm';
 import axios from "axios";  
 import { useParams } from "react-router-dom";
-import {backLink} from "../Consts"
+import { backLink } from '../Consts';
 
 function AddBoat({showModal, closeModal}) {
   const {id} = useParams();

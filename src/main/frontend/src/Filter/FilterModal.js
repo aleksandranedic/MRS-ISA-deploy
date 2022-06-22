@@ -6,7 +6,7 @@ import {VacationHouseFilterForm} from "./VacationHouseFilterForm";
 import {BoatFilterForm} from "./BoatFilterForm";
 import {FishingInstructorFilterForm} from "./FishingInstructorFilterForm";
 import DropdownMultiselect from "react-multiselect-dropdown-bootstrap";
-import {backLink} from "../Consts";
+import {backLink, notifyError} from "../Consts";
 import axios from "axios";
 import {DateTimePickerComponent} from "@syncfusion/ej2-react-calendars";
 import {Slider} from "@material-ui/core";
@@ -47,11 +47,35 @@ export function FilterModal({updateResults, showFilters, setShowFilters}) {
         location: "",
         reviewRating: 0,
         cancellationFee: false,
-        priceRange:[50,3000],
+        priceRange:[0,15000],
         sort: []
     });
+    const [errors, setErrors] = useState({})
 
     function filterData() {
+        if(formValuesInput.startTime===""){
+            errors.startTime="Morate da popunite ovo polje"
+        }
+        if(formValuesInput.endTime===""){
+            errors.endTime="Morate da popunite ovo polje"
+        }
+        if(formValuesInput.startDate===""){
+            errors.startTime="Morate da popunite ovo polje"
+        }
+        if(formValuesInput.endDate===""){
+            errors.endTime="Morate da popunite ovo polje"
+        }
+        if(new Date(formValuesInput.startDate+" "+formValuesInput.startTime).getDate()>new Date(formValuesInput.endDate+" "+formValuesInput.endTime).getDate())
+        {
+            errors.endDate="Krajnji datum mora biti posle početnog"
+        }
+        if(new Date(formValuesInput.startDate+" "+formValuesInput.startTime).getTime()>new Date(formValuesInput.endDate+" "+formValuesInput.endTime).getTime())
+        {
+            errors.endDate="Krajnji datum mora biti posle početnog"
+        }
+        if (Object.keys(errors).length > 0) {
+            return
+        }
         formValuesInput.adventuresChecked = adventuresChecked
         formValuesInput.vacationHousesChecked = vacationHousesChecked
         formValuesInput.boatsChecked = boatsChecked
@@ -119,24 +143,40 @@ export function FilterModal({updateResults, showFilters, setShowFilters}) {
                                 <Form.Control type="date"
                                               value={formValuesInput.startDate}
                                               onChange={e => setField("startDate", e.target.value)}
+                                              isInvalid={!!errors.startDate}
                                 />
+                                <Form.Control.Feedback type='invalid'>
+                                    {errors.startDate}
+                                </Form.Control.Feedback>
                                 <Form.Label>Vreme početka</Form.Label>
                                 <Form.Control type="time" min="05:00" max="20:00"
                                               value={formValuesInput.startTime}
                                               onChange={e => setField("startTime", e.target.value)}
+                                              isInvalid={!!errors.startTime}
                                 />
+                                <Form.Control.Feedback type='invalid'>
+                                    {errors.startTime}
+                                </Form.Control.Feedback>
                             </Form.Group>
                             <Form.Group className="ms-2 w-50 mt-2">
                                 <Form.Label>Završni datum</Form.Label>
                                 <Form.Control type="date"
                                               value={formValuesInput.endDate}
                                               onChange={e => setField("endDate", e.target.value)}
+                                              isInvalid={!!errors.endDate}
                                 />
+                                <Form.Control.Feedback type='invalid'>
+                                    {errors.endDate}
+                                </Form.Control.Feedback>
                                 <Form.Label>Vreme zavrsetka</Form.Label>
                                 <Form.Control type="time" min="05:00" max="20:00"
                                               value={formValuesInput.endTime}
                                               onChange={e => setField("endTime", e.target.value)}
+                                              isInvalid={!!errors.endTime}
                                 />
+                                <Form.Control.Feedback type='invalid'>
+                                    {errors.endTime}
+                                </Form.Control.Feedback>
                             </Form.Group>
 
                         </div>
@@ -165,7 +205,7 @@ export function FilterModal({updateResults, showFilters, setShowFilters}) {
                             style={{color: "#0d6efc"}}
                         />
                     </Form.Group>
-                    <ResourceFilterForm minimumValue={50} maximumValue={3000} setField={setField}/>
+                    <ResourceFilterForm minimumValue={0} maximumValue={15000} setField={setField}/>
                     <Accordion>
                         <Accordion.Item eventKey="0">
                             <Accordion.Header>

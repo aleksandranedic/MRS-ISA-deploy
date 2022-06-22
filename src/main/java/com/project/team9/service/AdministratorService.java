@@ -10,7 +10,6 @@ import com.project.team9.model.user.vendor.BoatOwner;
 import com.project.team9.model.user.vendor.FishingInstructor;
 import com.project.team9.model.user.vendor.VacationHouseOwner;
 import com.project.team9.repo.AdministratorRepository;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,6 +19,7 @@ import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AdministratorService {
@@ -29,17 +29,22 @@ public class AdministratorService {
 
     private final AdministratorRepository administratorRepository;
     private final FishingInstructorService fishingInstructorService;
-    private final VacationHouseOwnerService vacationHouseOwnerService;
     private final BoatOwnerService boatOwnerService;
+    private final BoatService boatService;
     private final AddressService addressService;
+    private final VacationHouseService vacationHouseService;
+    private final VacationHouseOwnerService vacationHouseOwnerService;
     private final ImageService imageService;
 
-    public AdministratorService(AdministratorRepository administratorRepository, FishingInstructorService fishingInstructorService, VacationHouseOwnerService vacationHouseOwnerService, BoatOwnerService boatOwnerService, AddressService addressService, ImageService imageService) {
+    public AdministratorService(AdministratorRepository administratorRepository, FishingInstructorService fishingInstructorService, BoatOwnerService boatOwnerService, BoatService boatService, AddressService addressService, VacationHouseService vacationHouseService, VacationHouseOwnerService vacationHouseOwnerService, ImageService imageService) {
         this.administratorRepository = administratorRepository;
         this.fishingInstructorService = fishingInstructorService;
-        this.vacationHouseOwnerService = vacationHouseOwnerService;
         this.boatOwnerService = boatOwnerService;
+        this.boatService = boatService;
         this.addressService = addressService;
+        this.vacationHouseService = vacationHouseService;
+        this.vacationHouseOwnerService = vacationHouseOwnerService;
+
         this.imageService = imageService;
     }
     public Administrator addAdmin(Administrator administrator){
@@ -61,7 +66,7 @@ public class AdministratorService {
         List<BoatOwner> owners = boatOwnerService.getBoatOwners();
         List<IncomeReport> reports = new ArrayList<>();
         for (BoatOwner boatOwner : owners ) {
-            reports.add(boatOwnerService.getIncomeReport(boatOwner.getId(), dataRange));
+            reports.add(boatService.getIncomeReport(boatOwner.getId(), dataRange));
         }
         return mergeReports(reports);
     }
@@ -69,7 +74,7 @@ public class AdministratorService {
         List<VacationHouseOwner> owners = vacationHouseOwnerService.getVacationHouseOwners();
         List<IncomeReport> reports = new ArrayList<>();
         for (VacationHouseOwner vacationHouseOwner : owners ) {
-            reports.add(vacationHouseOwnerService.getIncomeReport(vacationHouseOwner.getId(), dataRange));
+            reports.add(vacationHouseService.getIncomeReport(vacationHouseOwner.getId(), dataRange));
         }
         return mergeReports(reports);
     }
@@ -99,7 +104,7 @@ public class AdministratorService {
         return incomeReport.sort(false);
     }
     public List<Administrator> getAdministrators() {
-        return administratorRepository.findAll();
+        return administratorRepository.findAll().stream().filter(administrator -> !administrator.getDeleted()).collect(Collectors.toCollection(ArrayList::new));
     }
 
     public Long deleteById(Long id) {
@@ -120,7 +125,7 @@ public class AdministratorService {
         administratorRepository.save(administrator);
     }
 
-    public Long edit(AdminDTO dto) {
+    public Administrator edit(AdminDTO dto) {
 
         Administrator administrator = administratorRepository.getAdminById(dto.getId());
 
@@ -132,7 +137,7 @@ public class AdministratorService {
         administrator.setPhoneNumber(dto.getPhoneNumber());
         administrator.setAddress(address);
 
-        return administratorRepository.save(administrator).getId();
+        return administratorRepository.save(administrator);
 
     }
 

@@ -44,15 +44,23 @@ export function ChangeClientPassword({show, setShow}) {
             // We got errors!
             setErrors(newErrors)
         } else {
-            axios.post(backLink + "/changePassword", form).then(res => {
-                if (res.data !== "Neuspešno.Pokušajte ponovo") {
-                    notifySuccess("Uspešno ste promenili šifru")
-                    localStorage.setItem('token', res.data)
-                } else {
-                    notifyError(res.data)
-                }
+            const {oldPassword, newPassword} = form
+            var dto = {
+                oldPassword: oldPassword,
+                newPassword: newPassword
+            }
+            console.log(dto)
+            axios
+            .post(backLink + "/user/changePassword", dto, { headers: {"Content-Type": "application/json"} })
+            .then( res => {
+                localStorage.setItem('token', res.data)
+                notifySuccess("Uspešno ste promenili šifru")
                 handleShowPopUp()
             })
+            .catch(function (error) {
+                notifyError(error.response.data)
+                handleShowPopUp()
+            }); 
         }
     }
 

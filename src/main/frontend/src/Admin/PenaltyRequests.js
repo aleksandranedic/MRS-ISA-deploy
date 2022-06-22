@@ -94,7 +94,6 @@ function PenaltyRequestCard({request}) {
 
 function PenaltyRequestModal({request, show, setShow}) {
     const [checkPenalty, setCheckPenalty] = useState(false)
-    const [checkNoShow, setNoShow] = useState(false)
     const [response, setResponse] = useState("");
 
     const approveVendorReview = () => {
@@ -107,7 +106,7 @@ function PenaltyRequestModal({request, show, setShow}) {
             resourceId: request.resourceId,
             rating: request.rating,
             text: request.comment,
-            checkNoShow: checkNoShow,
+            checkNoShow: request.noShow,
             checkPenalty: checkPenalty,
             vendorReviewRequestId: request.vendorReviewRequestId
         }
@@ -174,17 +173,6 @@ function PenaltyRequestModal({request, show, setShow}) {
                     type="switch"
                     id="penalty"
                     label="Dodeli penal"
-                    className="mt-2"
-                />}
-                {request.noShow === true &&
-                <Form.Check
-                    value={checkNoShow}
-                    onChange={() => {
-                        setNoShow(!checkNoShow)
-                    }}
-                    type="switch"
-                    id="noShow"
-                    label="Dodeli penal za nepojavljivanje"
                     className="mt-2"
                 />}
             </Form>

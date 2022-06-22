@@ -3,6 +3,7 @@ package com.project.team9.service;
 import com.project.team9.dto.DeleteReplayDTO;
 import com.project.team9.model.request.DeleteRequest;
 import com.project.team9.model.user.Client;
+import com.project.team9.model.user.User;
 import com.project.team9.model.user.vendor.BoatOwner;
 import com.project.team9.model.user.vendor.FishingInstructor;
 import com.project.team9.model.user.vendor.VacationHouseOwner;
@@ -56,6 +57,18 @@ public class DeleteRequestService {
         return deleteRequestRepository.getById(Long.parseLong(requestId));
     }
 
+    public User getUserFromDeletionRequest(DeleteReplayDTO deleteReplayDTO){
+        if (fishingInstructorService.getFishingInstructorByEmail(deleteReplayDTO.getUsername()) != null) {
+            return fishingInstructorService.getFishingInstructorByEmail(deleteReplayDTO.getUsername());}
+        else if (boatOwnerService.getBoatOwnerByEmail(deleteReplayDTO.getUsername()) != null) {
+            return boatOwnerService.getBoatOwnerByEmail(deleteReplayDTO.getUsername());}
+        else if (vacationHouseOwnerService.getVacationHouseOwnerByEmail(deleteReplayDTO.getUsername()) != null) {
+            return vacationHouseOwnerService.getVacationHouseOwnerByEmail(deleteReplayDTO.getUsername());
+        }else if (clientService.getClientByEmail(deleteReplayDTO.getUsername()) != null) {
+            return clientService.getClientByEmail(deleteReplayDTO.getUsername());
+        }
+        return null;
+    }
     public String processDeletionRequest(DeleteReplayDTO deleteReplayDTO) {
         String response = "";
         String email = "";
@@ -63,7 +76,7 @@ public class DeleteRequestService {
         DeleteRequest deleteRequest = getById(deleteReplayDTO.getRequestId());
         if (deleteRequest.getDeleted())
             return "Zahtev za brisanje je već obrađen.";
-       // deleteReplayDTO.setComment(deleteReplayDTO.getComment());
+        deleteReplayDTO.setComment(deleteReplayDTO.getComment());
         deleteRequest.setDeleted(true);
         try{
             addDeleteRequest(deleteRequest);
@@ -74,54 +87,61 @@ public class DeleteRequestService {
         if (deleteReplayDTO.getType().equals("approve")) {
             if (fishingInstructorService.getFishingInstructorByEmail(deleteReplayDTO.getUsername()) != null) {
                 FishingInstructor fishingInstructor = fishingInstructorService.getFishingInstructorByEmail(deleteReplayDTO.getUsername());
+                email = fishingInstructor.getEmail();
+                fullName = fishingInstructor.getName();
                 int numberOfReservation=adventureReservationService.getAdventureReservationsForVendorId(fishingInstructor.getId()).size();
                 if(numberOfReservation>0){
                     return "Nalog ne može da se obriše pošto instruktor pecanja ima zakazane rezervacije";
+                }else{
+                    fishingInstructor.setDeleted(true);
+                    fishingInstructorService.addFishingInstructor(fishingInstructor);
                 }
-                fishingInstructor.setDeleted(true);
-                fishingInstructorService.addFishingInstructor(fishingInstructor);
-                email = fishingInstructor.getEmail();
-                fullName = fishingInstructor.getFirstName() + " " + fishingInstructor.getLastName();
             } else if (boatOwnerService.getBoatOwnerByEmail(deleteReplayDTO.getUsername()) != null) {
                 BoatOwner boatOwner = boatOwnerService.getBoatOwnerByEmail(deleteReplayDTO.getUsername());
+                email = boatOwner.getEmail();
+                fullName = boatOwner.getName();
                 int numberOfReservation=boatReservationService.getBoatReservationsForVendorId(boatOwner.getId()).size();
                 if(numberOfReservation>0){
                     return "Nalog ne može da se obriše pošto vlasnik broda ima zakazane rezervacije";
                 }
-                boatOwner.setDeleted(true);
-                boatOwnerService.save(boatOwner);
-                email = boatOwner.getEmail();
-                fullName = boatOwner.getFirstName() + " " + boatOwner.getLastName();
+                else{
+                    boatOwner.setDeleted(true);
+                    boatOwnerService.save(boatOwner);
+                }
             } else if (vacationHouseOwnerService.getVacationHouseOwnerByEmail(deleteReplayDTO.getUsername()) != null) {
                 VacationHouseOwner vacationHouseOwner = vacationHouseOwnerService.getVacationHouseOwnerByEmail(deleteReplayDTO.getUsername());
+                email = vacationHouseOwner.getEmail();
+                fullName = vacationHouseOwner.getName();
                 int numberOfReservation=vacationHouseReservationService.getVacationHouseReservationsForVendorId(vacationHouseOwner.getId()).size();
                 if(numberOfReservation>0){
                     return "Nalog ne može da se obriše pošto vlasnik vikendice ima zakazane rezervacije";
+                }else {
+                    vacationHouseOwner.setDeleted(true);
+                    vacationHouseOwnerService.save(vacationHouseOwner);
                 }
-                vacationHouseOwner.setDeleted(true);
-                vacationHouseOwnerService.save(vacationHouseOwner);
-                email = vacationHouseOwner.getEmail();
-                fullName = vacationHouseOwner.getFirstName() + " " + vacationHouseOwner.getLastName();
 
             } else if (clientService.getClientByEmail(deleteReplayDTO.getUsername()) != null) {
                 Client client = clientService.getClientByEmail(deleteReplayDTO.getUsername());
+                email = client.getEmail();
+                fullName = client.getFirstName() + " " + client.getLastName();
                 int numberOfReservation=vacationHouseReservationService.getVacationHouseReservationsForClienId(client.getId()).size()+
                                             adventureReservationService.getAdventureReservationsForClientId(client.getId()).size()+
                                             boatReservationService.getBoatReservationsForClientId(client.getId()).size();
                 if(numberOfReservation>0){
                     return "Nalog ne može da se obriše pošto klijent ima zakazane rezervacije";
+                }else{
+                    client.setDeleted(true);
+                    clientService.addClient(client);
                 }
-                client.setDeleted(true);
-                clientService.addClient(client);
-                email = client.getEmail();
-                fullName = client.getFirstName() + " " + client.getLastName();
             }
             response = "Uspešno ste obrisali korisnika";
             String fullResponse="Administratoreva poruka je: "+deleteReplayDTO.getComment()+"\nVaš nalog će biti obrisan";
             String emailForUser=emailService.buildHTMLEmail(fullName,fullResponse,"Hvala Vam što ste bili deo našeg tima","Potvrda o brisanje naloga");
-            //emailService.send(email, emailForUser,"Potvrda o brisanje naloga");
-        }
-        else {
+            emailService.send(email, emailForUser,"Potvrda o brisanje naloga");
+        } else {
+            String fullResponse="Administratoreva poruka je: "+deleteReplayDTO.getComment()+"\nVaš nalog neće biti obrisan";
+            String emailForUser=emailService.buildHTMLEmail(fullName,fullResponse,"","Potvrda o brisanje naloga");
+            emailService.send(email, emailForUser,"Potvrda o brisanje naloga");
             response = "Uspešno ste odbili brisanje korisnika";
         }
         return response;

@@ -275,4 +275,31 @@ public class TokenUtils {
         return request.getHeader(AUTH_HEADER);
     }
 
+
+//    public boolean canTokenBeRefreshed(String token, Date lastPasswordReset) {
+//        final Date created = this.getIssuedAtDateFromToken(token);
+//        return (!(this.isCreatedBeforeLastPasswordReset(created, lastPasswordReset))
+//                && (!(this.isTokenExpired(token))));
+//    }
+//    private Boolean isTokenExpired(String token) {
+//        final Date expiration = this.getExpirationDateFromToken(token);
+//        return expiration.before(new Date());
+//    }
+//
+//    public String refreshToken(String token) {
+//        String refreshedToken;
+//        try {
+//            final Claims claims = this.getAllClaimsFromToken(token);
+//            if (claims == null) return null;
+//            claims.setIssuedAt(new Date());
+//            refreshedToken = Jwts.builder()
+//                    .setClaims(claims)
+//                    .setExpiration(generateExpirationDate())
+//                    .signWith(SIGNATURE_ALGORITHM, SECRET).compact();
+//        } catch (Exception e) {
+//            refreshedToken = null;
+//        }
+//        return refreshedToken;
+//    }
+
 }

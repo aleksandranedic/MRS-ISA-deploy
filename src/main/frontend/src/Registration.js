@@ -87,13 +87,16 @@ export default function Registration() {
     }
 
     function registerUser(userDTO) {
-        let id=loadingToast()
-        axios.post(backLink+"/registration", userDTO).then(res => {
+        let id = loadingToast()
+        axios.post(backLink + "/registration", userDTO).then(res => {
             console.log(res.data)
-            if(!res.data.startsWith("Korisnik"))
-                updateForFetchedDataSuccess(res.data,id)
+            if (!res.data.startsWith("Korisnik"))
+                updateForFetchedDataSuccess(res.data, id)
             else
-                updateForFetchedDataError(res.data,id)
+                updateForFetchedDataError(res.data, id)
+            setTimeout(function () {
+                window.location.href = frontLink + "login"
+            }, 2000)
         })
     }
 
@@ -268,7 +271,7 @@ export default function Registration() {
                         </Form>
                     </Modal.Body>
                     <Modal.Footer>
-                        <Button variant="btn btn-outline-primary" href={frontLink+"login"}>
+                        <Button variant="btn btn-outline-primary" href={frontLink + "login"}>
                             Prijavi se
                         </Button>
                         <Button variant="success" onClick={handleSubmit}>

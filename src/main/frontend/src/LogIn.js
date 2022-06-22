@@ -83,7 +83,7 @@ export default function Login() {
                  }}
             >
                 <img
-                    src={require("./images/pexels-te-lensfix-1371360.jpg")}
+                    src={require("./images/LoginImage.jpg")}
                     alt="login"
                     style={{width: "60%"}}
                 />

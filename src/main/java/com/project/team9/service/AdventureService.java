@@ -9,16 +9,16 @@ import com.project.team9.model.Tag;
 import com.project.team9.model.buissness.Pricelist;
 import com.project.team9.model.reservation.AdventureReservation;
 import com.project.team9.model.reservation.Appointment;
-import com.project.team9.model.reservation.BoatReservation;
 import com.project.team9.model.resource.Adventure;
 import com.project.team9.model.user.Client;
 import com.project.team9.model.user.vendor.FishingInstructor;
 import com.project.team9.repo.AdventureRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -72,6 +72,77 @@ public class AdventureService {
         this.emailService = emailService;
         this.userCategoryService = userCategoryService;
         this.pointlistService = pointlistService;
+    }
+
+    public List<Adventure> filterAdventures(AdventureFilterDTO filterDTO, List<Adventure> adventureList, List<AdventureReservation> adventureReservations) {
+        ArrayList<Adventure> adventures = new ArrayList<>();
+        if (filterDTO.isAdventuresChecked()) {
+
+            for (Adventure adventure : adventureList) {
+                if (
+                        checkNumberOfClients(filterDTO, adventure) &&
+                                checkInstructorName(filterDTO, adventure) &&
+                                checkReviewRating(filterDTO, adventure) &&
+                                checkLocation(filterDTO, adventure) &&
+                                checkCancellationFee(filterDTO, adventure)
+                )
+                    adventures.add(adventure);
+            }
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd H:mm");
+            String datetime = filterDTO.getStartDate() + " " + filterDTO.getStartTime();
+            LocalDateTime startDateTime = LocalDateTime.parse(datetime, formatter);
+            datetime = filterDTO.getEndDate() + " " + filterDTO.getEndTime();
+            LocalDateTime endDateTime = LocalDateTime.parse(datetime, formatter);
+
+            int numberOfDays = (int) ChronoUnit.DAYS.between(startDateTime.toLocalDate(), endDateTime.toLocalDate()) == 0 ? 1 : (int) ChronoUnit.DAYS.between(startDateTime.toLocalDate(), endDateTime.toLocalDate());
+            int numberOfHours = (int) ChronoUnit.HOURS.between(startDateTime.toLocalTime(), endDateTime.toLocalTime());
+            if (numberOfHours < 0) {
+                numberOfHours += 24;
+            }
+            HashMap<LocalDateTime, Integer> listOfDatesBusyness = new HashMap<>();
+            boolean remove = true;
+            ArrayList<Adventure> adventuresToDelete = new ArrayList<>();
+
+            for (Adventure adventure : adventures) {
+
+                if (!checkPrice(filterDTO, adventure.getPricelist().getPrice() * numberOfHours))
+                    adventuresToDelete.add(adventure);
+                for (int i = 0; i < numberOfDays; i++) {
+                    for (int j = 0; j < numberOfHours; j++) {
+                        listOfDatesBusyness.put(startDateTime.plusHours(j).plusDays(i), 0);
+                    }
+                }
+                for (AdventureReservation adventureReservation : adventureReservations) {
+                    if (Objects.equals(adventureReservation.getResource().getId(), adventure.getId())) {
+                        LocalDateTime startAppointment = adventureReservation.getAppointments().get(0).getStartTime();
+                        LocalDateTime endAppointment = adventureReservation.getAppointments().get(adventureReservation.getAppointments().size() - 1).getEndTime();
+                        for (LocalDateTime time : listOfDatesBusyness.keySet()) {
+                            if ((startAppointment.isBefore(time) && endAppointment.isAfter(time)))
+                                listOfDatesBusyness.replace(time, 1);
+                        }
+                    }
+                }
+
+                for (int i : listOfDatesBusyness.values()) {
+                    if (i == 0) {
+                        remove = false;
+                        break;
+                    }
+                }
+
+                if (remove)
+                    adventuresToDelete.add(adventure);
+                listOfDatesBusyness.clear();
+
+            }
+
+            for (Adventure adventure :
+                    adventuresToDelete) {
+                adventures.remove(adventure);
+            }
+        }
+        return adventures;
     }
 
     public List<AdventureQuickReservationDTO> getQuickReservations(String id) {
@@ -134,7 +205,7 @@ public class AdventureService {
         Appointment currApp = startDateAppointment;
         for (int i = 0; i < dto.getDuration() - 1; i++) {
             LocalDateTime startDate = currApp.getEndTime();
-            LocalDateTime endDate = startDate.plusDays(1);
+            LocalDateTime endDate = startDate.plusHours(1);
             currApp = new Appointment(startDate, endDate);
             appointmentService.save(currApp);
             appointments.add(currApp);
@@ -180,33 +251,40 @@ public class AdventureService {
         return true;
     }
 
-    private void updateQuickReservation(AdventureReservation originalReservation, AdventureReservation newReservation) {
+    public void updateQuickReservation(AdventureReservation originalReservation, AdventureReservation newReservation) {
         originalReservation.setAppointments(newReservation.getAppointments());
         originalReservation.setAdditionalServices(newReservation.getAdditionalServices());
         originalReservation.setNumberOfClients(newReservation.getNumberOfClients());
         originalReservation.setPrice(newReservation.getPrice());
     }
 
-    private AdventureQuickReservationDTO createAdventureReservationDTO(int boatPrice, AdventureReservation reservation) {
+    public AdventureQuickReservationDTO createAdventureReservationDTO(int adventurePrice, AdventureReservation reservation) {
         Appointment firstAppointment = getFirstAppointment(reservation.getAppointments());
+
         LocalDateTime startDate = firstAppointment.getStartTime();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm'h'");
         String strDate = startDate.format(formatter);
+
         int numberOfPeople = reservation.getNumberOfClients();
+
         List<Tag> additionalServices = reservation.getAdditionalServices();
+
         int duration = reservation.getAppointments().size();
         int price = reservation.getPrice();
-        boatPrice = boatPrice * duration;
-        int discount = 100 - (100 * price / boatPrice);
+
+        adventurePrice = adventurePrice * duration;
+
+        int discount = 100 - (100 * price / adventurePrice);
+
         return new AdventureQuickReservationDTO(reservation.getId(), strDate, numberOfPeople, additionalServices, duration, price, discount);
     }
 
-    private Appointment getFirstAppointment(List<Appointment> appointments) {
+    public Appointment getFirstAppointment(List<Appointment> appointments) {
         List<Appointment> sortedAppointments = getSortedAppointments(appointments);
         return sortedAppointments.get(0);
     }
 
-    private List<Appointment> getSortedAppointments(List<Appointment> appointments) {
+    public List<Appointment> getSortedAppointments(List<Appointment> appointments) {
         Collections.sort(appointments, new Comparator<Appointment>() {
             @Override
             public int compare(Appointment a1, Appointment a2) {
@@ -224,8 +302,14 @@ public class AdventureService {
         repository.save(adventure);
     }
 
+    @Cacheable(value = "adventure", unless="#result == null")
     public Adventure getById(String id) {
-        return repository.getById(Long.parseLong(id));
+        try{
+            return repository.getById(Long.parseLong(id));
+        }
+        catch (Exception e){
+            return null;
+        }
     }
 
     @Transactional(readOnly = false)
@@ -336,7 +420,7 @@ public class AdventureService {
         return newAdventure.getId();
     }
 
-    private Adventure createAdventureFromDTO(AdventureDTO dto) {
+    public Adventure createAdventureFromDTO(AdventureDTO dto) {
         Pricelist pricelist = new Pricelist(dto.getPrice(), new Date());
         pricelistService.addPriceList(pricelist);
 
@@ -385,7 +469,7 @@ public class AdventureService {
         return adventure;
     }
 
-    private void addImagesToAdventure(MultipartFile[] multipartFiles, Adventure adventure) throws IOException {
+    public void addImagesToAdventure(MultipartFile[] multipartFiles, Adventure adventure) throws IOException {
         List<String> paths = imageService.saveImages(adventure.getId(), multipartFiles, IMAGES_PATH, adventure.getImages());
         List<Image> images = imageService.getImages(paths);
         adventure.setImages(images);
@@ -401,13 +485,11 @@ public class AdventureService {
 
             }
         }
-
-
         return reservations;
     }
 
-    private ReservationDTO createDTOFromReservation(AdventureReservation reservation) {
-        return new ReservationDTO(reservation.getAppointments(), reservation.getNumberOfClients(), reservation.getAdditionalServices(), reservation.getPrice(), reservation.getClient(), reservation.getResource().getTitle(), reservation.isBusyPeriod(), reservation.isQuickReservation(), reservation.getResource().getId(), reservation.getId());
+    public ReservationDTO createDTOFromReservation(AdventureReservation reservation) {
+        return new ReservationDTO(reservation.getAppointments(), reservation.getNumberOfClients(), reservation.getAdditionalServices(), reservation.getPrice(), reservation.getClient(), reservation.getResource().getTitle(), reservation.isBusyPeriod(), reservation.isQuickReservation(), reservation.getResource().getId(), reservation.getId(), "adventure");
     }
 
     public List<ReservationDTO> getReservationsForFishingInstructor(Long id) {
@@ -464,9 +546,15 @@ public class AdventureService {
                 reservation.getAppointments().get(reservation.getAppointments().size() - 1).getEndTime().toString();
         String email = emailService.buildHTMLEmail(client.getName(), fullResponse, link, "Potvrda rezervacije");
         emailService.send(client.getEmail(), email, "Potvrda rezervacije");
+
+        FishingInstructor fishingInstructor = reservation.getResource().getOwner();
+        fishingInstructor.setNumOfPoints(fishingInstructor.getNumOfPoints() + pointlistService.getVendorPointlist().getNumOfPoints());
+        fishingInstructorService.addFishingInstructor(fishingInstructor);
+
         client.setNumOfPoints(client.getNumOfPoints() + pointlistService.getClientPointlist().getNumOfPoints());
         clientService.addClient(client);
         reservation.setClient(client);
+
         adventureReservationService.save(reservation);
 
         return reservation.getId();
@@ -496,7 +584,10 @@ public class AdventureService {
 
         int price = adventure.getPricelist().getPrice() * appointments.size();
         int discount = userCategoryService.getClientCategoryBasedOnPoints(client.getNumOfPoints()).getDiscount();
-        price = price * (1 - discount) / 100;
+
+        if (discount > 0) {
+            price = price * (1 - discount / 100);
+        }
 
         List<Tag> tags = new ArrayList<Tag>();
         for (String text : dto.getAdditionalServicesStrings()) {
@@ -548,7 +639,7 @@ public class AdventureService {
         return reservation.getId();
     }
 
-    private AdventureReservation createBusyPeriodReservationFromDTO(NewBusyPeriodDTO dto) {
+    public AdventureReservation createBusyPeriodReservationFromDTO(NewBusyPeriodDTO dto) {
         List<Appointment> appointments = new ArrayList<Appointment>();
 
         LocalDateTime startTime = LocalDateTime.of(dto.getStartYear(), Month.of(dto.getStartMonth()), dto.getStartDay(), 0, 0);
@@ -618,6 +709,12 @@ public class AdventureService {
             String email = emailService.buildHTMLEmail(client.getName(), fullResponse, link, "Potvrda brze rezervacije");
             emailService.send(client.getEmail(), email, "Potvrda brze rezervacije");
             repository.save(adventure);
+            FishingInstructor fishingInstructor = quickReservation.getResource().getOwner();
+            fishingInstructor.setNumOfPoints(fishingInstructor.getNumOfPoints() + pointlistService.getVendorPointlist().getNumOfPoints());
+            fishingInstructorService.addFishingInstructor(fishingInstructor);
+
+            client.setNumOfPoints(client.getNumOfPoints() + pointlistService.getClientPointlist().getNumOfPoints());
+            clientService.addClient(client);
             return id;
         } catch (ObjectOptimisticLockingFailureException e){
             return null;
@@ -642,87 +739,38 @@ public class AdventureService {
     }
 
     public List<EntityDTO> getFilteredAdventures(AdventureFilterDTO filterDTO) {
-        if (filterDTO.isAdventuresChecked()) {
-            ArrayList<Adventure> adventures = new ArrayList<>();
-            for (Adventure adventure : getAdventures()) {
-                if (checkNumberOfClients(filterDTO, adventure) &&
-                        checkInstructorName(filterDTO, adventure) &&
-                        checkReviewRating(filterDTO, adventure) &&
-                        checkLocation(filterDTO, adventure) &&
-                        checkCancellationFee(filterDTO, adventure)
-                )
-                    adventures.add(adventure);
-            }
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd H:mm");
-            String datetime = filterDTO.getStartDate() + " " + filterDTO.getStartTime();
-            LocalDateTime startDateTime = LocalDateTime.parse(datetime, formatter);//ovde puca
-            datetime = filterDTO.getEndDate() + " " + filterDTO.getEndTime();
-            LocalDateTime endDateTime = LocalDateTime.parse(datetime, formatter);
+        return convertAdventureListToEntityDTOList(
+                filterAdventures(
+                        filterDTO,
+                        getAdventures(),
+                        adventureReservationService.getReservations()));
+    }
+    public EntityDTO convertAdventureToEntityDTO(Adventure adventure, double rating) {
+        return new EntityDTO(
+                adventure.getTitle(),
+                "adventure",
+                adventure.getImages().get(0),
+                rating,
+                adventure.getId(),
+                adventure.getAddress(),
+                adventure.getPricelist().getPrice()
+        );
+    }
 
-            int numberOfDays = (int) ChronoUnit.DAYS.between(startDateTime.toLocalDate(), endDateTime.toLocalDate()) == 0 ? 1 : (int) ChronoUnit.DAYS.between(startDateTime.toLocalDate(), endDateTime.toLocalDate());
-            int numberOfHours = (int) ChronoUnit.HOURS.between(startDateTime.toLocalTime(), endDateTime.toLocalTime());
-            if (numberOfHours < 0) {
-                numberOfHours += 24;
-            }
-            HashMap<LocalDateTime, Integer> listOfDatesBusyness = new HashMap<>();
-            boolean remove = true;
-            ArrayList<Adventure> adventuresToDelete = new ArrayList<>();
-            for (Adventure adventure : adventures) {
-                if (!checkPrice(filterDTO, adventure.getPricelist().getPrice() * numberOfHours))  //of days ce da bude za vikendice
-                    adventures.remove(adventure); //cenu za sve dane sto ostaje
-                for (int i = 0; i < numberOfDays; i++) {
-                    for (int j = 0; j < numberOfHours; j++) {
-                        listOfDatesBusyness.put(startDateTime.plusHours(j).plusDays(i), 0);
-                    }
-                }
-                for (AdventureReservation adventureReservation : adventureReservationService.getReservationsByAdventureId(adventure.getId())) {
-                    LocalDateTime startAppointment = adventureReservation.getAppointments().get(0).getStartTime();
-                    LocalDateTime endAppointment = adventureReservation.getAppointments().get(adventureReservation.getAppointments().size() - 1).getEndTime();
-                    for (LocalDateTime time : listOfDatesBusyness.keySet()) {
-                        if ((startAppointment.isBefore(time) && endAppointment.isAfter(time)))
-                            listOfDatesBusyness.replace(time, 1);
-                    }
-                }
-                for (int i : listOfDatesBusyness.values()) {
-                    if (i == 0) {
-                        remove = false;
-                        break;
-                    }
-                }
-                if (remove)
-                    adventuresToDelete.add(adventure);
-                listOfDatesBusyness.clear();
-
-            }
-            for (Adventure adventure :
-                    adventuresToDelete) {
-                adventures.remove(adventure);
-            }
-            List<EntityDTO> list = new ArrayList<>();
-            for (Adventure adventure :
-                    adventures) {
-                list.add(new EntityDTO(
-                        adventure.getTitle(),
-                        "adventure",
-                        adventure.getImages().get(0),
-                        getAdventureRating(adventure.getId()),
-                        adventure.getId(),
-                        adventure.getAddress(),
-                        adventure.getPricelist().getPrice()
-                ));
-            }
-            return list;
-        } else {
-            return new ArrayList<>();
+    private List<EntityDTO> convertAdventureListToEntityDTOList(List<Adventure> adventures) {
+        List<EntityDTO> entities = new ArrayList<EntityDTO>();
+        for (Adventure adventure: adventures) {
+            entities.add(convertAdventureToEntityDTO(adventure, getAdventureRating(adventure.getId())));
         }
+        return entities;
     }
 
     private boolean checkNumberOfClients(AdventureFilterDTO filterDTO, Adventure adventure) {
-        return filterDTO.getNumberOfClients().isEmpty() || Integer.parseInt(filterDTO.getNumberOfClients()) == adventure.getNumberOfClients();
+        return filterDTO.getNumberOfClients().isEmpty() || Integer.parseInt(filterDTO.getNumberOfClients()) <= adventure.getNumberOfClients();
     }
 
     private boolean checkInstructorName(AdventureFilterDTO filterDTO, Adventure adventure) {
-        return (adventure.getOwner().getFirstName() + " " + adventure.getOwner().getLastName()).equals(filterDTO.getFishingInstructorName()) || filterDTO.getFishingInstructorName().isEmpty();
+        return adventure.getOwner().getName().equals(filterDTO.getFishingInstructorName()) || filterDTO.getFishingInstructorName().isEmpty();
     }
 
     private boolean checkPrice(AdventureFilterDTO filterDTO, int price) {
@@ -730,7 +778,9 @@ public class AdventureService {
     }
 
     private boolean checkCancellationFee(AdventureFilterDTO filterDTO, Adventure adventure) {
-        if (filterDTO.isCancellationFee() && adventure.getCancellationFee() == 0)
+        if(!filterDTO.isCancellationFee())
+            return true;
+        if (adventure.getCancellationFee() == 0)
             return true;
         else if (!filterDTO.isCancellationFee() && adventure.getCancellationFee() != 0)
             return true;
@@ -790,19 +840,7 @@ public class AdventureService {
     }
 
     public List<EntityDTO> getClientsSubscribedAdventures() {
-        List<EntityDTO> entities = new ArrayList<>();
-        for (Adventure adventure : getAdventures()) {
-            entities.add(new EntityDTO(
-                    adventure.getTitle(),
-                    "adventure",
-                    adventure.getImages().get(0),
-                    getAdventureRating(adventure.getId()),
-                    adventure.getId(),
-                    adventure.getAddress(),
-                    adventure.getPricelist().getPrice()
-            ));
-        }
-        return entities;
+        return convertAdventureListToEntityDTOList(getAdventures());
     }
 
     public List<EntityDTO> findAdventuresThatClientIsSubbedTo(Long client_id) {
@@ -828,7 +866,8 @@ public class AdventureService {
         try {
             AdventureReservation adventureReservation = adventureReservationService.getById(id);
             LocalDateTime now = LocalDateTime.now();
-            int numberOfDaysBetween = (int) ChronoUnit.DAYS.between(now.toLocalDate(), adventureReservation.getAppointments().get(0).getStartTime());
+            List<Appointment> appointments = adventureReservation.getAppointments();
+            int numberOfDaysBetween = (int) ChronoUnit.DAYS.between(now.toLocalDate(), appointments.get(0).getStartTime());
             if (numberOfDaysBetween < 3) {
                 return "Otkazivanje rezervacije je moguće najkasnije 3 dana do početka";
             }

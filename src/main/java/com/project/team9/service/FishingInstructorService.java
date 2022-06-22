@@ -342,13 +342,13 @@ public class FishingInstructorService {
 
     public Long deleteById(Long id) throws CannotDeleteException {
         FishingInstructor fishingInstructor = repository.get(id);
-        fishingInstructor.setDeleted(true);
 
         for (AdventureReservation r:  adventureReservationService.getAdventureReservationsForVendorId(id)) {
             if (r.getAppointments().get(r.getAppointments().size() - 1).getEndTime().isAfter(LocalDateTime.now())) {
                 throw new CannotDeleteException();
             }
         }
+        fishingInstructor.setDeleted(true);
 
         return repository.save(fishingInstructor).getId();
     }

@@ -21,6 +21,9 @@ export default function AdventureInfo({adventure}) {
                     <div className="m-3">
                         <TagInfo title="Oprema za pecanje" tagList={adventure?.fishingEquipment}/>
                     </div>
+                    <div className="m-3">
+                        <TagInfo title="Dodatne usluge" tagList={adventure?.additionalServices}/>
+                    </div>
                     <Info title="Pravila ponasanja" text={adventure?.rulesAndRegulations}/>
                    
                 </div>

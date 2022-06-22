@@ -127,7 +127,8 @@
 {
     color: rgba(200, 200, 200, 0.9);
     font-size:30vh;
-    transform: translateX(-6vh);
+    transform: translateX(-6vh) translateY(6vh);
+
 
 }
 

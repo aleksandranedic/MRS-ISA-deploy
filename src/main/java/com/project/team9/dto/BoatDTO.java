@@ -296,29 +296,7 @@ public class BoatDTO {
         return "BoatDTO{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", address='" + address + '\'' +
-                ", number='" + number + '\'' +
-                ", street='" + street + '\'' +
-                ", city='" + city + '\'' +
-                ", country='" + country + '\'' +
-                ", description='" + description + '\'' +
-                ", type='" + type + '\'' +
-                ", imagePaths=" + imagePaths +
-                ", rulesAndRegulations='" + rulesAndRegulations + '\'' +
-                ", engineNumber='" + engineNumber + '\'' +
-                ", engineStrength=" + engineStrength +
-                ", topSpeed=" + topSpeed +
-                ", length=" + length +
-                ", navigationEquipment=" + navigationEquipment +
-                ", tagsText=" + tagsText +
-                ", fishingEquipment=" + fishingEquipment +
-                ", tagsFishingEquipText=" + tagsFishingEquipText +
-                ", additionalServices=" + additionalServices +
-                ", tagsAdditionalServicesText=" + tagsAdditionalServicesText +
                 ", price=" + price +
-                ", cancellationFee=" + cancellationFee +
-                ", capacity=" + capacity +
-                ", quickReservations=" + quickReservations +
                 '}';
     }
 

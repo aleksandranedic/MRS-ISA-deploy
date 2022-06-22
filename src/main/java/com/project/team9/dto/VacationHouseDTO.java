@@ -216,21 +216,7 @@ public class VacationHouseDTO {
         return "VacationHouseDTO{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", address='" + address + '\'' +
-                ", number='" + number + '\'' +
-                ", street='" + street + '\'' +
-                ", city='" + city + '\'' +
-                ", country='" + country + '\'' +
-                ", description='" + description + '\'' +
-                ", imagePaths=" + imagePaths +
-                ", rulesAndRegulations='" + rulesAndRegulations + '\'' +
-                ", additionalServices=" + additionalServices +
-                ", tagsText=" + tagsText +
                 ", price=" + price +
-                ", cancellationFee=" + cancellationFee +
-                ", numberOfRooms=" + numberOfRooms +
-                ", capacity=" + capacity +
-                ", quickReservations=" + quickReservations +
                 '}';
     }
 }

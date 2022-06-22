@@ -56,17 +56,6 @@ public class FishingInstructorController {
     @PostMapping("/edit")
     Long editFishingInstructor(@RequestBody FishingInstructorDTO dto) {
         return service.edit(dto);
-
-    }
-
-    @PutMapping("/{id}/edit/password")
-    FishingInstructor editFishingInstructor(@RequestBody String newPassword, @PathVariable String id) {
-        try {
-            return service.editFishingInstructorPassword(newPassword, id);
-        } catch (UserNotFoundException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     @PostMapping("/delete/{id}")

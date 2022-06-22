@@ -49,11 +49,27 @@ export function ResourceOverview() {
         })
     }
 
-    const deleteHouse = () => {
+    const deleteHouse = (house) => {
+        axios.get(backLink + "/house/delete/" + house.id)
+            .then(response => {
+                    window.location.reload();
+                }
+            ).catch(error => {
+            setShowAlert(true);
 
+        })
     }
 
-    const deleteBoat = () => {
+    const deleteBoat = (boat) => {
+        axios.get(backLink + "/boat/delete/" + boat.id)
+            .then(response => {
+                    window.location.reload();
+                }
+            ).catch(error => {
+            setShowAlert(true);
+
+        })
+
 
     }
 
@@ -170,7 +186,7 @@ export function ResourceOverview() {
                                         <h1 className="title-link text-light ">{house.title}</h1>
 
                                     </a>
-                                    <Button variant="outline-light" className="delete-button">Obriši</Button>
+                                    <Button variant="outline-light" className="delete-button" onClick={()=>deleteHouse(house)}>Obriši</Button>
                                 </div>
                                 <hr className="ms-4 me-4" style={{color: "white"}}/>
 
@@ -218,7 +234,7 @@ export function ResourceOverview() {
                                         <h1 className="title-link text-light ">{boat.title}</h1>
 
                                     </a>
-                                    <Button variant="outline-light" className="delete-button">Obriši</Button>
+                                    <Button variant="outline-light" className="delete-button" onClick={()=>deleteBoat(boat)}>Obriši</Button>
                                 </div>
                                 <hr className="ms-4 me-4" style={{color: "white"}}/>
 

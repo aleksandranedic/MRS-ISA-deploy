@@ -131,9 +131,9 @@ public class ComplaintsService {
         Client client= clientService.getById(String.valueOf(responseDTO.getUserId()));
         String fullResponse="Administratorov odgovor na žalbu je: "+responseDTO.getResponse();
         String emailForVendorOfResourceOrVendor=emailService.buildHTMLEmail(fullName,fullResponse,"","Odgovor na žalbu klijenta");
-       // emailService.send(email, emailForVendorOfResourceOrVendor, "Odgovor na žalbu klijenta");
+        emailService.send(email, emailForVendorOfResourceOrVendor, "Odgovor na žalbu klijenta");
         String emailForClient=emailService.buildHTMLEmail(client.getName(), fullResponse,"","Odgovor na žalbu klijenta");;
-       // emailService.send(client.getEmail(),emailForClient, "Odgovor na žalbu klijenta");
+        emailService.send(client.getEmail(),emailForClient, "Odgovor na žalbu klijenta");
         return "Uspešno ste odgovoroli na žalbu";
     }
 

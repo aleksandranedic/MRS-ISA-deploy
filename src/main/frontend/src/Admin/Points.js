@@ -27,7 +27,6 @@ export function Points() {
 
     const fetchSiteFee = () => {
         axios.get(backLink + "/siteFee").then(res => {
-            console.log(res.data);
             setSiteFee(res.data.percentage);
         })
     }
@@ -41,15 +40,12 @@ export function Points() {
 
     const saveChanges = () => {
         axios.post(backLink + "/siteFee/add/" + siteFee).then(res => {
-            console.log(res.data)
         });
 
         axios.post(backLink + "/pointlist/add/client/" + clientPoints).then(res =>{
-            console.log(res.data);
         });
 
         axios.post(backLink + "/pointlist/add/vendor/" + vendorPoints).then(res =>{
-            console.log(res.data);
         });
 
         window.location.reload();

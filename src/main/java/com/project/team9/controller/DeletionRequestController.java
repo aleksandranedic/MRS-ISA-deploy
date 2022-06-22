@@ -37,8 +37,8 @@ public class DeletionRequestController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/client/{id}")
-    public ResponseEntity<String> deleteClient(@PathVariable Long id, @RequestParam String deletingReason) {
+    @PostMapping("/client/{id}")
+    public ResponseEntity<String> deleteClient(@PathVariable Long id, @RequestBody String deletingReason) {
         return ResponseEntity.ok(service.deleteUser(id,deletingReason, "CLIENT"));
     }
 
@@ -50,8 +50,8 @@ public class DeletionRequestController {
     public ResponseEntity<String> deleteBoatOwner(@PathVariable Long id, @RequestBody String deletingReason) {
         return ResponseEntity.ok(service.deleteUser(id,deletingReason, "BOAT_OWNER"));
     }
-    @PostMapping("/fishingInstructor/{id}")
-    public ResponseEntity<String> createFishingInstructorRequest(@PathVariable Long id, @RequestBody String deletingReason) {
+    @DeleteMapping(value="/fishingInstructor/{id}", consumes=MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> deleteFishingInstructor(@PathVariable Long id, @RequestBody String deletingReason) {
         return ResponseEntity.ok(service.deleteUser(id,deletingReason, "FISHING_INSTRUCTOR"));
     }
 

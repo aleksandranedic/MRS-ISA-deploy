@@ -13,9 +13,6 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:4444",
-                        "https://the-savana-frontend.herokuapp.com",
-                        "http://the-savana-frontend.herokuapp.com")
                 .allowedMethods("GET", "POST","PUT", "DELETE");
     }
     @Override

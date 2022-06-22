@@ -1,6 +1,7 @@
 package com.project.team9.controller;
 
 import com.project.team9.dto.*;
+import com.project.team9.exceptions.CannotDeleteException;
 import com.project.team9.model.resource.VacationHouse;
 import com.project.team9.model.user.vendor.BoatOwner;
 import com.project.team9.model.user.vendor.VacationHouseOwner;
@@ -37,12 +38,12 @@ public class VacationHouseOwnerController {
 
     @PostMapping(value = "getIncomeReport/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public IncomeReport getIncomeReport(@PathVariable String id, IncomeReportDateRange dateRange) {
-        return service.getIncomeReport(Long.parseLong(id), dateRange);
+        return vacationHouseService.getIncomeReport(Long.parseLong(id), dateRange);
     }
 
     @PostMapping(value = "getAttendanceReport/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public IncomeReport getAttendanceReport(@PathVariable String id, AttendanceReportParams attendanceReportParams) {
-        return service.getAttendanceReport(Long.parseLong(id), attendanceReportParams);
+        return vacationHouseService.getAttendanceReport(Long.parseLong(id), attendanceReportParams);
     }
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -101,6 +102,11 @@ public class VacationHouseOwnerController {
     @GetMapping("/getStat/{id}")
     public UserStatDTO getUserStat(@PathVariable Long id) {
         return service.getUserStat(id);
+    }
+
+    @PostMapping("/delete/{id}")
+    Long delete(@PathVariable Long id) throws CannotDeleteException {
+        return service.deleteById(id);
     }
 }
 

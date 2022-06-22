@@ -122,7 +122,8 @@ export function BusyPeriodModal({show, setShow, type, resourceId}) {
         }
     }
 
-    return (<><Modal show={show} onHide={() => setShow(false)}>
+    return (<>
+            <Modal show={show} onHide={() => setShow(false)}>
             <Modal.Header closeButton>
                 <Modal.Title>Period zauzetosti</Modal.Title>
             </Modal.Header>

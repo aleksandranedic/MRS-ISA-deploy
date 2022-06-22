@@ -29,14 +29,16 @@ public class VendorReviewRequestService {
     }
 
     public List<VendorReviewRequest> getAllVendorReviews() {
-        return repository.findAll().stream().filter(vendorReviewRequest -> !vendorReviewRequest.getDeleted()).collect(Collectors.toCollection(ArrayList::new));
+        List<VendorReviewRequest> all = repository.findAll();
+        return all.stream().filter(vendorReviewRequest -> !vendorReviewRequest.getDeleted()).collect(Collectors.toCollection(ArrayList::new));
     }
 
     public VendorReviewRequest getById(Long id){return repository.getById(id);}
 
-    public void delete(Long vendorReviewRequestId) {
+    public VendorReviewRequest delete(Long vendorReviewRequestId) {
         VendorReviewRequest vendorReviewRequest=getById(vendorReviewRequestId);
         vendorReviewRequest.setDeleted(true);
         repository.save(vendorReviewRequest);
+        return vendorReviewRequest;
     }
 }

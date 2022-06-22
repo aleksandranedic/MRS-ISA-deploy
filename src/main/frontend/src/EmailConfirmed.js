@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react'
 import {useParams} from "react-router-dom";
 import axios from "axios";
 import {BsFillCheckCircleFill} from "react-icons/bs";
-import background from "./images/registration1.jpg";
+import background from "./images/RegistrationImage.jpg";
 import {IoCloseCircleSharp} from "react-icons/io5";
 import Button from "react-bootstrap/Button";
 import {backLink, frontLink} from "./Consts";
@@ -19,13 +19,13 @@ export default function EmailConfirmed() {
     const getData = () => {
         axios.get(backLink + "/registration/confirm/" + token.token).then(res => {
             console.log(res.data)
-            if (!res.data.messageTitle.toString().startsWith("Vaša"))
-                setData(res.data)
+            setData(res.data)
         })
     }
     useEffect(() => {
         getData()
     }, [])
+
     return (
         <div className="m-0 p-0 min-vw-90 min-vh-100"
              style={{backgroundImage: `url(${background})`, backgroundSize: "cover",}}

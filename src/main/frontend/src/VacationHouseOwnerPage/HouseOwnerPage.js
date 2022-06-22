@@ -61,7 +61,6 @@ function HouseOwnerPage() {
             .get(backLink + "/houseowner/getStat/" + id)
             .then(res => {
                 setStat(res.data);
-                console.log(res.data);
             });
     };
 
@@ -160,7 +159,7 @@ function HouseOwnerPage() {
 
             <hr className="me-5 ms-5"/>
 
-            <Calendar events={events} reservable={false}/>
+            <Calendar events={events} reservable={false} reservations = {reservations}  myPage={myPage}/>
             {myPage &&
                 <>
 

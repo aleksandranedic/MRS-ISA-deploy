@@ -12,7 +12,6 @@ function UpdateHouse({showModal, closeModal, vacationHouse}) {
   const imagesRef = useRef();
   const {id} = useParams();
   const [validated, setValidated] = useState(false);
-
   const [state, setState] = useState({name:'', price:'', description:'', numberOfRooms:'', capacity:'', rulesAndRegulations:'', street:'', number:'', city:'', country:'', additionalServices:[{id:'', text:''}], cancellationFee:'', imagePaths:['']});
     
   useEffect(() => {
@@ -85,7 +84,7 @@ function UpdateHouse({showModal, closeModal, vacationHouse}) {
       data.append("tagsText", state.tagsText)
       data.append("fileImage",images);
       axios
-      .post(backLink+ "/house/updateHouse/" + id, data)
+      .post(backLink + "/house/updateHouse/" + id, data)
       .then(res => {
         window.location.reload();
       });

@@ -58,7 +58,7 @@ public class AdministratorController {
     }
 
     @PostMapping("/delete/{id}")
-    Long delete(@PathVariable Long id) throws CannotDeleteException {
+    Long delete(@PathVariable Long id) {
         return service.deleteById(id);
     }
 
@@ -68,7 +68,7 @@ public class AdministratorController {
     }
 
     @PostMapping("/edit")
-    public Long edit(AdminDTO dto) {
+    public Administrator edit(AdminDTO dto) {
         return service.edit(dto);
     }
 

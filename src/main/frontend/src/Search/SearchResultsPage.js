@@ -5,9 +5,11 @@ import axios from "axios";
 import {useParams} from "react-router-dom";
 import {backLink} from "../Consts";
 import SearchResultsResources from "./SearchResultsItems";
-
+import {Button} from "react-bootstrap";
 
 export function SearchResultsPage() {
+
+    const [sortBy, setSortBy] = useState("");
 
     const [boats, setBoats] = useState([]);
     const fetchBoats = () => {
@@ -51,6 +53,14 @@ export function SearchResultsPage() {
         fetchBoats()
         fetchAdventures()
     }, []);
+
+    function sortByPrice() {
+       setSortBy("price");
+    }
+
+    function sortByRating() {
+        setSortBy("rating");
+    }
 
     const updateResults = (formValues) => {
         const adventureFilter = {
@@ -116,23 +126,55 @@ export function SearchResultsPage() {
         )
     }
 
+
+
     return (
         <>
             <Banner caption={"Rezultati pretrage"}/>
             <Navigation updateResults={updateResults} buttons={[]} editable={false} searchable={true}/>
             <div style={{marginLeft: "5%", marginRight: "10%"}}>
-                <h4 className="fw-light m-3">Vikendice</h4>
-                <hr/>
-                <SearchResultsResources list={vacationHouses} name={"house"} />
-                <h4 className="fw-light m-3">Brodovi</h4>
-                <hr/>
-                <SearchResultsResources list={boats} name={"boat"}/>
-                <h4 className="fw-light m-3">Avanture</h4>
-                <hr/>
-                <SearchResultsResources list={adventures} name={"adventure"}/>
+                <div className="d-flex align-items-end w-100">
+                    <p className="ms-auto mt-5">Sortiraj po:</p>
+                    <Button onClick={sortByPrice} variant="secondary" className="m-2">CENA</Button>
+                    <Button onClick={sortByRating} variant="secondary" className="m-2 ms-0">OCENA</Button>
+                </div>
+                {sortBy === "" &&
+                    <Resources vacationHouses={vacationHouses}
+                               boats={boats}
+                               adventures={adventures}/>
+                }
+
+                {sortBy === "price" &&
+                    <Resources vacationHouses={vacationHouses.sort((a,b) => (a.price > b.price) ? 1 : ((b.price > a.price) ? -1 : 0))}
+                               boats={boats.sort((a,b) => (a.price > b.price) ? 1 : ((b.price > a.price) ? -1 : 0))}
+                               adventures={adventures.sort((a,b) => (a.price > b.price) ? 1 : ((b.price > a.price) ? -1 : 0))}/>
+                }
+
+                {sortBy === "rating" &&
+                    <Resources vacationHouses={vacationHouses.sort((a,b) => (a.rating < b.rating) ? 1 : ((b.rating < a.rating) ? -1 : 0))}
+                               boats={boats.sort((a,b) => (a.rating < b.rating) ? 1 : ((b.rating < a.rating) ? -1 : 0))}
+                               adventures={adventures.sort((a,b) => (a.rating < b.rating) ? 1 : ((b.rating < a.rating) ? -1 : 0))}/>
+                }
             </div>
         </>
 
 
     )
+}
+
+
+function Resources({vacationHouses, boats, adventures}) {
+    return (<>
+        <h4 className="fw-light m-3">Vikendice</h4>
+        <hr/>
+        <SearchResultsResources list={vacationHouses} name={"house"} />
+        <h4 className="fw-light m-3">Brodovi</h4>
+        <hr/>
+        <SearchResultsResources list={boats} name={"boat"}/>
+        <h4 className="fw-light m-3">Avanture</h4>
+        <hr/>
+        <SearchResultsResources list={adventures} name={"adventure"}/>
+    </>)
+
+
 }

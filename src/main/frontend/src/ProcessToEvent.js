@@ -19,7 +19,18 @@ export function processReservationsForResources(reservations, myPage) {
                     title: "",
                     start: start,
                     end: end,
-                    backgroundColor: "rgb(224,48,22)"
+                    backgroundColor: "rgb(224,48,22)",
+                    id: r.id
+
+                })
+            }
+            else if (r.quickReservation === true){
+                newEvents.push({
+                    title: "Akcija",
+                    start: start,
+                    end: end,
+                    backgroundColor: "rgb(237,126,22)",
+                    id: r.id
                 })
             }
             else {
@@ -31,7 +42,8 @@ export function processReservationsForResources(reservations, myPage) {
                     title: clientName,
                     start: start,
                     end: end,
-                    backgroundColor: "rgb(34,215,195)"
+                    backgroundColor: "rgb(34,215,195)",
+                    id: r.id
                 })
             }
         }
@@ -56,19 +68,34 @@ export function processReservationsForUsers(reservations) {
                 title: "",
                 start: start,
                 end: end,
-                backgroundColor: "rgb(224,48,22)"
+                backgroundColor: "rgb(224,48,22)",
+                id: r.id
             })
         }
         else {
 
             let title = r.resourceTitle;
+            if (r.quickReservations === true){
+                newEvents.push({
+                    title: "Akcija - " + title,
+                    start: start,
+                    end: end,
+                    backgroundColor: "rgb(224,113,22)",
+                    id: r.id
 
-            newEvents.push({
-                title: title,
-                start: start,
-                end: end,
-                backgroundColor: "rgb(34,215,195)"
-            })
+                })
+            }else {
+                newEvents.push({
+                    title: title,
+                    start: start,
+                    end: end,
+                    backgroundColor: "rgb(34,215,195)",
+                    id: r.id
+
+                })
+            }
+
+
         }
 
     }

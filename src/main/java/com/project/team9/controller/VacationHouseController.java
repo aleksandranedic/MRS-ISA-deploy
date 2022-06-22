@@ -75,7 +75,7 @@ public class VacationHouseController {
 
     @PostMapping("/reservation/busyPeriod/add")
     public Long addBusyPeriod(@RequestBody NewBusyPeriodDTO dto) throws ReservationNotAvailableException {
-        return service.createBusyPeriod(dto);
+        return service.createBusyPeriod(dto).getId();
     }
 
 
